@@ -77,3 +77,9 @@ git rm --cached anthropics_skills_repo
 git add .
 git commit -m "Remove broken submodule"
 git push
+
+================================================================================
+git rm -f --cached anthropics_skills_repo
+git add .
+git commit -m "Completely purge broken submodule references"
+git push

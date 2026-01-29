@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - 交易风控管理后台 | RiskGuard</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: radial-gradient(circle at top right, #1e1b4b, #0f1419);
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 400px;
+            padding: 40px;
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .logo-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            display: inline-block;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .login-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .login-subtitle {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            margin-top: 8px;
+        }
+
+        .error-message {
+            color: var(--color-danger);
+            font-size: 13px;
+            text-align: center;
+            min-height: 20px;
+            margin-top: 16px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .error-message.visible {
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-card">
+        <div class="login-header">
+            <span class="logo-icon">⚡</span>
+            <h1 class="login-title" data-i18n="system_title">RiskGuard Admin</h1>
+            <p class="login-subtitle" data-i18n="system_subtitle">交易风控管理系统</p>
+        </div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label class="form-label" data-i18n="username">用户名</label>
+                <input type="text" class="form-input" id="username" data-i18n="placeholder_username"
+                    placeholder="请输入用户名" value="superadmin">
+            </div>
+            <div class="form-group">
+                <label class="form-label" data-i18n="password">密码</label>
+                <input type="password" class="form-input" id="password" data-i18n="placeholder_password"
+                    placeholder="请输入密码" value="admin123">
+            </div>
+            <button type="submit" class="btn btn-primary btn-login" data-i18n="login_btn">登 录</button>
+        </form>
+
+        <div class="error-message" id="errorMessage" data-i18n="login_error">用户名或密码错误</div>
+
+        <div style="text-align: center; margin-top: 24px;">
+            <button class="btn btn-secondary btn-sm" id="langBtn"
+                onclick="I18n.switch(I18n.currentLang === 'en' ? 'zh' : 'en')">🇨🇳 中</button>
+        </div>
+    </div>
+
+    <script src="js/mock-data.js"></script>
+    <script src="js/i18n.js"></script>
+    <script>
+        // 初始化 i18n
+        document.addEventListener('DOMContentLoaded', function () {
+            I18n.init();
+        });
+    </script>
+    <script src="js/login.js"></script>
+</body>
+
+</html>

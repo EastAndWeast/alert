@@ -83,3 +83,12 @@ git rm -f --cached anthropics_skills_repo
 git add .
 git commit -m "Completely purge broken submodule references"
 git push
+
+================================================================================
+我遇到 Cloudflare 部署失败，提示找不到子模块 'anthropics_skills_repo'。请帮我彻底删除这个子模块引用。 请依次执行以下命令：
+git rm -f --cached anthropics_skills_repo (强制从 Git 索引中删除)
+rm -rf anthropics_skills_repo (删除本地文件夹)
+rm .gitmodules (删除子模块配置文件)
+git add .
+git commit -m "Fix: Remove broken submodule reference completely"
+git push

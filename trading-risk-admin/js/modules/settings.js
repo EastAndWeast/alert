@@ -108,38 +108,36 @@ const SettingsModule = {
                         <h3 class="card-title">🔗 ${I18n.t('webhook_settings')}</h3>
                     </div>
                     <div class="card-body">
-                        <div class="grid grid-3">
-                            <div>
+                        <div class="grid grid-2" style="gap: 24px;">
+                            <!-- Telegram (First) -->
+                            <div class="webhook-panel" style="padding: 16px; border: 1px solid var(--border-color); border-radius: 8px;">
                                 <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-                                    <div style="font-weight: 500;">${I18n.t('lark_notify')}</div>
+                                    <div style="font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                                        <span>✈️ ${I18n.t('telegram_notify')}</span>
+                                        <i class="help-icon" style="cursor: pointer; opacity: 0.6;" onclick="App.showGuide('telegram')">❓</i>
+                                    </div>
                                     <label class="switch">
-                                        <input type="checkbox" id="larkEnabled" ${settings.lark_enabled ? 'checked' : ''}>
+                                        <input type="checkbox" id="telegramEnabled" ${settings.telegram_enabled ? 'checked' : ''}>
                                         <span class="switch-slider"></span>
                                     </label>
                                 </div>
                                 <div class="form-group">
-                                    <label class="form-label">${I18n.t('lark_webhook_label')}</label>
-                                    <input type="text" class="form-input" id="larkWebhook" value="${settings.lark_webhook || ''}" placeholder="https://open.feishu.cn/...">
-                                    <small style="color: var(--text-muted); margin-top: 4px; display: block;">${I18n.t('lark_webhook_help')}</small>
-                                </div>
-                            </div>
-                            <div>
-                                <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-                                    <div style="font-weight: 500;">${I18n.t('slack_notify')}</div>
-                                    <label class="switch">
-                                        <input type="checkbox" id="slackEnabled" ${settings.slack_enabled ? 'checked' : ''}>
-                                        <span class="switch-slider"></span>
-                                    </label>
+                                    <label class="form-label">${I18n.t('telegram_bot_token_label')}</label>
+                                    <input type="password" class="form-input" id="telegramToken" value="${settings.telegram_token || ''}" placeholder="${I18n.t('telegram_bot_token_help')}">
                                 </div>
                                 <div class="form-group">
-                                    <label class="form-label">${I18n.t('slack_webhook_label')}</label>
-                                    <input type="text" class="form-input" id="slackWebhook" value="${settings.slack_webhook || ''}" placeholder="https://hooks.slack.com/...">
-                                    <small style="color: var(--text-muted); margin-top: 4px; display: block;">${I18n.t('slack_webhook_help')}</small>
+                                    <label class="form-label">${I18n.t('telegram_chat_id_label')}</label>
+                                    <input type="text" class="form-input" id="telegramChatId" value="${settings.telegram_chat_id || ''}" placeholder="${I18n.t('telegram_chat_id_help')}">
                                 </div>
                             </div>
-                            <div>
+
+                            <!-- Teams (Second) -->
+                            <div class="webhook-panel" style="padding: 16px; border: 1px solid var(--border-color); border-radius: 8px;">
                                 <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-                                    <div style="font-weight: 500;">${I18n.t('teams_notify')}</div>
+                                    <div style="font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                                        <span>👥 ${I18n.t('teams_notify')}</span>
+                                        <i class="help-icon" style="cursor: pointer; opacity: 0.6;" onclick="App.showGuide('teams')">❓</i>
+                                    </div>
                                     <label class="switch">
                                         <input type="checkbox" id="teamsEnabled" ${settings.teams_enabled ? 'checked' : ''}>
                                         <span class="switch-slider"></span>
@@ -147,8 +145,43 @@ const SettingsModule = {
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">${I18n.t('teams_webhook_label')}</label>
-                                    <input type="text" class="form-input" id="teamsWebhook" value="${settings.teams_webhook || ''}" placeholder="https://outlook.office.com/...">
-                                    <small style="color: var(--text-muted); margin-top: 4px; display: block;">${I18n.t('teams_webhook_help')}</small>
+                                    <input type="text" class="form-input" id="teamsWebhook" value="${settings.teams_webhook || ''}" placeholder="${I18n.t('teams_webhook_help')}">
+                                </div>
+                            </div>
+
+                            <!-- Slack (Third) -->
+                            <div class="webhook-panel" style="padding: 16px; border: 1px solid var(--border-color); border-radius: 8px;">
+                                <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                    <div style="font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                                        <span>💬 ${I18n.t('slack_notify')}</span>
+                                        <i class="help-icon" style="cursor: pointer; opacity: 0.6;" onclick="App.showGuide('slack')">❓</i>
+                                    </div>
+                                    <label class="switch">
+                                        <input type="checkbox" id="slackEnabled" ${settings.slack_enabled ? 'checked' : ''}>
+                                        <span class="switch-slider"></span>
+                                    </label>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">${I18n.t('slack_webhook_label')}</label>
+                                    <input type="text" class="form-input" id="slackWebhook" value="${settings.slack_webhook || ''}" placeholder="${I18n.t('slack_webhook_help')}">
+                                </div>
+                            </div>
+
+                            <!-- Lark (Fourth) -->
+                            <div class="webhook-panel" style="padding: 16px; border: 1px solid var(--border-color); border-radius: 8px;">
+                                <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                    <div style="font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                                        <span>🐦 ${I18n.t('lark_notify')}</span>
+                                        <i class="help-icon" style="cursor: pointer; opacity: 0.6;" onclick="App.showGuide('lark')">❓</i>
+                                    </div>
+                                    <label class="switch">
+                                        <input type="checkbox" id="larkEnabled" ${settings.lark_enabled ? 'checked' : ''}>
+                                        <span class="switch-slider"></span>
+                                    </label>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">${I18n.t('lark_webhook_label')}</label>
+                                    <input type="text" class="form-input" id="larkWebhook" value="${settings.lark_webhook || ''}" placeholder="${I18n.t('lark_webhook_help')}">
                                 </div>
                             </div>
                         </div>
@@ -172,12 +205,15 @@ const SettingsModule = {
         settings.auto_refresh_interval = parseInt(document.getElementById('refreshInterval').value);
 
         // 保存 Webhook 配置
-        settings.lark_enabled = document.getElementById('larkEnabled').checked;
-        settings.lark_webhook = document.getElementById('larkWebhook').value;
-        settings.slack_enabled = document.getElementById('slackEnabled').checked;
-        settings.slack_webhook = document.getElementById('slackWebhook').value;
+        settings.telegram_enabled = document.getElementById('telegramEnabled').checked;
+        settings.telegram_token = document.getElementById('telegramToken').value;
+        settings.telegram_chat_id = document.getElementById('telegramChatId').value;
         settings.teams_enabled = document.getElementById('teamsEnabled').checked;
         settings.teams_webhook = document.getElementById('teamsWebhook').value;
+        settings.slack_enabled = document.getElementById('slackEnabled').checked;
+        settings.slack_webhook = document.getElementById('slackWebhook').value;
+        settings.lark_enabled = document.getElementById('larkEnabled').checked;
+        settings.lark_webhook = document.getElementById('larkWebhook').value;
 
         App.showToast('success', I18n.t('settings_saved_success'));
         Router.refresh();

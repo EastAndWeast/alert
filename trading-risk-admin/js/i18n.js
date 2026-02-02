@@ -141,6 +141,68 @@ var I18n = {
             'slack_notify_desc': 'Send real-time alerts to Slack channels.',
             'teams_notify': 'Teams Notifications',
             'teams_notify_desc': 'Send real-time alerts to Microsoft Teams.',
+            'telegram_notify': 'Telegram Notifications',
+            'telegram_notify_desc': 'Send real-time alerts to Telegram via Bot.',
+            'telegram_bot_token_label': 'Bot Token',
+            'telegram_chat_id_label': 'Chat ID',
+            'telegram_bot_token_help': 'Token from @BotFather.',
+            'telegram_chat_id_help': 'Invite bot to group and get ID.',
+            'guide_telegram_title': 'Telegram Bot Setup Guide',
+            'guide_teams_title': 'Microsoft Teams Webhook Guide',
+            'guide_slack_title': 'Slack Webhook Guide',
+            'guide_lark_title': 'Lark Webhook Guide',
+            'guide_telegram_content': `
+                <div class="guide-scroll">
+                    <ol>
+                        <li>Search for <b>@BotFather</b> on Telegram.</li>
+                        <li>Send <code>/newbot</code> and follow steps to get your <b>API Token</b>.</li>
+                        <li>Create a group/channel and add your bot as admin.</li>
+                        <li>Get your <b>Chat ID</b> (use bots like @userinfobot or API).</li>
+                    </ol>
+                    <div class="guide-link">
+                        <a href="https://core.telegram.org/bots/tutorial" target="_blank">🔗 Official Telegram Bot Tutorial</a>
+                    </div>
+                </div>
+            `,
+            'guide_teams_content': `
+                <div class="guide-scroll">
+                    <ol>
+                        <li>Open Teams, go to your channel.</li>
+                        <li>Click <b>... (More options)</b> -> <b>Workflows (Recommended)</b>.</li>
+                        <li>Search for <b>"Post to a channel when a webhook request is received"</b>.</li>
+                        <li>Follow steps to create your unique <b>Webhook URL</b>.</li>
+                    </ol>
+                    <div class="guide-link">
+                        <a href="https://learn.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/add-incoming-webhook" target="_blank">🔗 Official Teams Webhook Guide</a>
+                    </div>
+                </div>
+            `,
+            'guide_slack_content': `
+                <div class="guide-scroll">
+                    <ol>
+                        <li>Go to <a href="https://api.slack.com/apps" target="_blank">Slack API</a> and create a new App.</li>
+                        <li>Enable <b>Incoming Webhooks</b> in the settings.</li>
+                        <li>Click <b>Add New Webhook to Workspace</b> and choose a channel.</li>
+                        <li>Copy the generated <b>Webhook URL</b>.</li>
+                    </ol>
+                    <div class="guide-link">
+                        <a href="https://api.slack.com/messaging/webhooks" target="_blank">🔗 Official Slack Webhook Guide</a>
+                    </div>
+                </div>
+            `,
+            'guide_lark_content': `
+                <div class="guide-scroll">
+                    <ol>
+                        <li>Open Lark group chat, click <b>Settings</b> -> <b>Bots</b>.</li>
+                        <li>Choose <b>Custom Bot</b> and click <b>Add</b>.</li>
+                        <li>Name your bot and copy the <b>Webhook URL</b>.</li>
+                        <li>(Optional) Configure IP Whitelist or Signature for security.</li>
+                    </ol>
+                    <div class="guide-link">
+                        <a href="https://www.larksuite.com/hc/en-US/articles/360024984273-Use-Bots-in-Lark" target="_blank">🔗 Official Lark Bot Guide</a>
+                    </div>
+                </div>
+            `,
             'reset_defaults': 'Reset Defaults',
             'save_settings': 'Save Settings',
             'settings_saved_success': 'Global settings saved successfully',
@@ -662,6 +724,68 @@ var I18n = {
             'slack_notify_desc': '将告警实时推送至 Slack 频道。',
             'teams_notify': 'Teams 通知',
             'teams_notify_desc': '将告警实时推送至 Microsoft Teams。',
+            'telegram_notify': 'Telegram 通知',
+            'telegram_notify_desc': '通过机器人将告警实时推送至 Telegram。',
+            'telegram_bot_token_label': '机器人 Token',
+            'telegram_chat_id_label': '会话 ID (Chat ID)',
+            'telegram_bot_token_help': '从 @BotFather 获取的 API Token。',
+            'telegram_chat_id_help': '将机器人加入群组后获取的 ID。',
+            'guide_telegram_title': 'Telegram 机器人配置指南',
+            'guide_teams_title': 'Microsoft Teams Webhook 配置指南',
+            'guide_slack_title': 'Slack Webhook 配置指南',
+            'guide_lark_title': '飞书 Webhook 配置指南',
+            'guide_telegram_content': `
+                <div class="guide-scroll">
+                    <ol>
+                        <li>在 Telegram 中搜索 <b>@BotFather</b>。</li>
+                        <li>发送 <code>/newbot</code> 指令并按提示获取 <b>API Token</b>。</li>
+                        <li>创建群组或频道，并将您的机器人添加为管理员。</li>
+                        <li>获取 <b>Chat ID</b> (可通过 @userinfobot 或 API 获取)。</li>
+                    </ol>
+                    <div class="guide-link">
+                        <a href="https://core.telegram.org/bots/tutorial" target="_blank">🔗 Telegram 官方机器人教程</a>
+                    </div>
+                </div>
+            `,
+            'guide_teams_content': `
+                <div class="guide-scroll">
+                    <ol>
+                        <li>打开 Teams，进入目标频道。</li>
+                        <li>点击 <b>... (更多)</b> -> <b>工作流 (推荐)</b>。</li>
+                        <li>搜索 <b>"在接收到 Webhook 请求时发布到频道"</b>。</li>
+                        <li>按提示创建并获取唯一的 <b>Webhook URL</b>。</li>
+                    </ol>
+                    <div class="guide-link">
+                        <a href="https://learn.microsoft.com/zh-cn/microsoftteams/platform/webhooks-and-connectors/how-to/add-incoming-webhook" target="_blank">🔗 Teams Webhook 官方配置指南</a>
+                    </div>
+                </div>
+            `,
+            'guide_slack_content': `
+                <div class="guide-scroll">
+                    <ol>
+                        <li>进入 <a href="https://api.slack.com/apps" target="_blank">Slack API</a> 界面并创建新 App。</li>
+                        <li>在设置中开启 <b>Incoming Webhooks</b>。</li>
+                        <li>点击 <b>Add New Webhook to Workspace</b> 并选择接收频道。</li>
+                        <li>复制生成的 <b>Webhook URL</b>。</li>
+                    </ol>
+                    <div class="guide-link">
+                        <a href="https://api.slack.com/messaging/webhooks" target="_blank">🔗 Slack Webhook 官方说明</a>
+                    </div>
+                </div>
+            `,
+            'guide_lark_content': `
+                <div class="guide-scroll">
+                    <ol>
+                        <li>进入飞书群聊，点击 <b>设置</b> -> <b>机器人</b>。</li>
+                        <li>选择 <b>自定义机器人</b> 并点击 <b>添加</b>。</li>
+                        <li>命名机器人并复制生成的 <b>Webhook 地址</b>。</li>
+                        <li>(可选) 为了安全，建议配置 IP 白名单或签名。</li>
+                    </ol>
+                    <div class="guide-link">
+                        <a href="https://www.larksuite.com/hc/zh-CN/articles/360024984273" target="_blank">🔗 飞书机器人官方操作指南</a>
+                    </div>
+                </div>
+            `,
             'save_settings': '保存设置',
             'settings_saved_success': '全局设置已保存',
             'theme_light': '白天模式',

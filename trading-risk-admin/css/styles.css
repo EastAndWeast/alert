@@ -72,6 +72,8 @@ body {
     background-color: var(--bg-primary);
     color: var(--text-primary);
     line-height: 1.6;
+    overflow: hidden;
+    /* 防止全局滚动条与内容区滚动条冲突 */
 }
 
 a {
@@ -1084,6 +1086,53 @@ button {
 .param-value {
     font-size: 16px;
     font-weight: 600;
+}
+
+/* 配置指南样式 */
+.guide-scroll {
+    /* 移除冗余滚动条，由 modal-body 统一处理 */
+    padding-right: 8px;
+}
+
+.guide-img {
+    width: 100%;
+    max-width: 600px;
+    height: auto;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border-color);
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: #fff;
+}
+
+.guide-link {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px dashed var(--border-color);
+    text-align: right;
+}
+
+.guide-link a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+    transition: opacity 0.2s;
+}
+
+.guide-link a:hover {
+    opacity: 0.8;
+    text-decoration: underline;
+}
+
+.guide-content ol {
+    padding-left: 20px;
+    line-height: 1.6;
+}
+
+.guide-content li {
+    margin-bottom: 8px;
 }
 
 /* 响应式 */

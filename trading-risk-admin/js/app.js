@@ -185,6 +185,12 @@ var App = {
         document.getElementById('modalOverlay').classList.remove('active');
     },
 
+    showGuide: function (platform) {
+        var title = I18n.t('guide_' + platform + '_title');
+        var content = I18n.t('guide_' + platform + '_content');
+        this.showModal(title, '<div class="guide-content">' + content + '</div>');
+    },
+
     initTheme: function () {
         var theme = localStorage.getItem('theme') || 'dark';
         if (theme === 'light') {

@@ -214,12 +214,15 @@ const MockData = {
         alert_retention_days: 90,
         auto_refresh_interval: 30,
         // Webhook 通知配置
-        lark_webhook: '',
-        lark_enabled: false,
+        telegram_token: '',
+        telegram_chat_id: '',
+        telegram_enabled: false,
+        teams_webhook: '',
+        teams_enabled: false,
         slack_webhook: '',
         slack_enabled: false,
-        teams_webhook: '',
-        teams_enabled: false
+        lark_webhook: '',
+        lark_enabled: false
     },
 
     // 审计日志

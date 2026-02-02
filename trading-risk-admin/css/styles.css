@@ -67,13 +67,18 @@ html {
     scroll-behavior: smooth;
 }
 
+html,
+body {
+    height: 100%;
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
     background-color: var(--bg-primary);
     color: var(--text-primary);
     line-height: 1.6;
     overflow: hidden;
-    /* 防止全局滚动条与内容区滚动条冲突 */
+    /* 锁定页面滚动，由内部容器处理 */
 }
 
 a {
@@ -90,7 +95,7 @@ button {
 
 .app-container {
     display: flex;
-    min-height: 100vh;
+    height: 100vh;
 }
 
 /* 侧边栏 */
@@ -318,8 +323,9 @@ button {
     margin-left: var(--sidebar-width);
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
+    height: 100vh;
     transition: margin-left var(--transition-normal);
+    overflow: hidden;
 }
 
 .sidebar.collapsed~.main-content {

@@ -4,7 +4,7 @@ const RulesModule = {
     // 规则类型映射
     ruleTypes: {
         'large_trade_lots': { name: 'Large Trade (手数)', icon: '💰', color: 'primary' },
-        'large_trade_usd': { name: 'Large Trade (USD)', icon: '💵', color: 'success' },
+        'large_trade_usd': { name: 'Large Trader (USD)', icon: '💵', color: 'success' },
         'liquidity_trade': { name: 'Liquidity Trade', icon: '🌊', color: 'info' },
         'scalping': { name: 'Scalping', icon: '⚡', color: 'warning' },
         'exposure_alert': { name: 'Exposure Alert', icon: '📊', color: 'danger' },
@@ -110,16 +110,18 @@ const RulesModule = {
                 break;
             case 'large_trade_usd':
                 html += '<div class="param-item"><strong>' + I18n.t('usd_threshold_label') + '：</strong>$' + Utils.formatNumber(p.usd_value_threshold) + '</div>';
-                html += '<div class="param-item"><strong>' + I18n.t('alert_interval_label') + '：</strong>' + p.min_alert_interval + ' ' + I18n.t('unit_seconds') + '</div>';
+                html += '<div class="param-item"><strong>' + I18n.t('monitor_symbols_label') + '：</strong>' + (p.symbol_filter && p.symbol_filter.length ? p.symbol_filter.join(', ') : I18n.t('all')) + '</div>';
                 break;
             case 'liquidity_trade':
                 html += '<div class="param-item"><strong>' + I18n.t('time_window_label') + '：</strong>' + p.time_window + ' ' + I18n.t('unit_seconds') + '</div>';
                 html += '<div class="param-item"><strong>' + I18n.t('min_order_count_label') + '：</strong>≥ ' + p.min_order_count + ' ' + I18n.t('unit_orders') + '</div>';
                 html += '<div class="param-item"><strong>' + I18n.t('total_lot_threshold_label') + '：</strong>' + p.total_lot_threshold + ' ' + I18n.t('unit_lots') + '</div>';
+                html += '<div class="param-item"><strong>' + I18n.t('monitor_symbols_label') + '：</strong>' + (p.monitoring_scope && p.monitoring_scope.length ? p.monitoring_scope.join(', ') : I18n.t('all')) + '</div>';
                 break;
             case 'scalping':
                 html += '<div class="param-item"><strong>' + I18n.t('duration_threshold_label') + '：</strong>< ' + p.duration_threshold + ' ' + I18n.t('unit_seconds') + '</div>';
                 html += '<div class="param-item"><strong>' + I18n.t('profit_usd_min_label') + '：</strong>$' + p.profit_usd_min + '</div>';
+                html += '<div class="param-item"><strong>' + I18n.t('monitor_symbols_label') + '：</strong>' + (p.symbol_filter && p.symbol_filter.length ? p.symbol_filter.join(', ') : I18n.t('all')) + '</div>';
                 break;
             case 'exposure_alert':
                 html += '<div class="param-item"><strong>' + I18n.t('target_currency_label') + '：</strong>' + p.target_currency + '</div>';
@@ -128,10 +130,12 @@ const RulesModule = {
             case 'pricing_volatility':
                 html += '<div class="param-item"><strong>' + I18n.t('stop_pricing_duration_label') + '：</strong>' + p.pricing.stop_pricing_duration + ' ' + I18n.t('unit_seconds') + '</div>';
                 html += '<div class="param-item"><strong>' + I18n.t('volatility_mode_label') + '：</strong>' + p.volatility.mode + '</div>';
+                html += '<div class="param-item"><strong>' + I18n.t('monitor_symbols_label') + '：</strong>' + (p.pricing.scope && p.pricing.scope.length ? p.pricing.scope.join(', ') : I18n.t('all')) + '</div>';
                 break;
             case 'nop_limit':
                 html += '<div class="param-item"><strong>' + I18n.t('symbol_name_label') + '：</strong>' + p.symbol_name + '</div>';
                 html += '<div class="param-item"><strong>' + I18n.t('nop_threshold_label') + '：</strong>' + Utils.formatNumber(p.nop_threshold) + '</div>';
+                html += '<div class="param-item"><strong>' + I18n.t('monitor_symbols_label') + '：</strong>' + (p.symbol_filter && p.symbol_filter.length ? p.symbol_filter.join(', ') : I18n.t('all')) + '</div>';
                 break;
             case 'watch_list':
                 html += '<div class="param-item"><strong>' + I18n.t('monitored_accounts_label') + '：</strong>' + p.watched_accounts.length + ' ' + I18n.t('unit_items') + '</div>';
@@ -345,14 +349,25 @@ const RulesModule = {
                 break;
 
             case 'large_trade_usd':
+                html += '<div class="rule-form-split">';
+                // 左侧：常规参数
+                html += '  <div class="rule-sidebar">';
                 if (dataSourceHtml) html += dataSourceHtml;
-                html += '<div class="form-group"><label>' + I18n.t('usd_threshold_label') + ' *</label>';
-                html += '<input type="number" name="usd_value_threshold" class="form-control" step="1000" value="' + (p ? p.usd_value_threshold : 50000) + '" required></div>';
-                html += '<div class="form-group"><label>' + I18n.t('cent_account_groups_label') + '</label>';
-                html += '<input type="text" name="cent_account_groups" class="form-control" value="' + (p ? p.cent_account_groups.join(',') : '*CENT*,*MICRO*') + '"></div>';
-                html += '<div class="form-group"><label>' + I18n.t('alert_interval_label') + ' (' + I18n.t('unit_seconds') + ')</label>';
-                html += '<input type="number" name="min_alert_interval" class="form-control" value="' + (p ? p.min_alert_interval : 60) + '"></div>';
-                html += '<div class="rule-tip">' + I18n.t('rule_tip_large_trade_usd') + '</div>';
+                html += '    <div class="form-group"><label>' + I18n.t('usd_threshold_label') + ' *</label>';
+                html += '      <input type="number" name="usd_value_threshold" class="form-control" step="1000" value="' + (p ? p.usd_value_threshold : 50000) + '" required></div>';
+                html += '    <div class="form-group"><label>' + I18n.t('cent_account_groups_label') + '</label>';
+                html += '      <input type="text" name="cent_account_groups" class="form-control" value="' + (p ? p.cent_account_groups.join(',') : '*CENT*,*MICRO*') + '"></div>';
+                html += '    <div class="rule-tip">' + I18n.t('rule_tip_large_trade_usd') + '</div>';
+                html += '  </div>';
+
+                // 右侧：产品选择
+                html += '  <div class="rule-main">';
+                html += '    <div class="form-group" style="margin-bottom:0;"><label>' + I18n.t('monitor_symbols_label') + '</label>';
+                html += '      <div class="tag-input-panel-info">' + I18n.t('tag_input_help') + '</div>';
+                html += this.renderTagInput('symbol_filter', p ? p.symbol_filter : []);
+                html += '    </div>';
+                html += '  </div>';
+                html += '</div>';
                 break;
 
             case 'liquidity_trade':
@@ -576,7 +591,7 @@ const RulesModule = {
             case 'large_trade_usd':
                 p.usd_value_threshold = parseFloat(formData.get('usd_value_threshold'));
                 p.cent_account_groups = formData.get('cent_account_groups') ? formData.get('cent_account_groups').split(',').map(function (s) { return s.trim(); }).filter(function (s) { return s; }) : [];
-                p.min_alert_interval = parseInt(formData.get('min_alert_interval')) || 60;
+                p.symbol_filter = formData.get('symbol_filter') ? formData.get('symbol_filter').split(',').map(function (s) { return s.trim(); }).filter(function (s) { return s; }) : [];
                 break;
 
             case 'liquidity_trade':

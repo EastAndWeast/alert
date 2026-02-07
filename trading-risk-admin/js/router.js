@@ -21,6 +21,7 @@ var Router = {
         'users': { title: 'user_management', breadcrumb: 'multi_tenant / user_management', render: function () { return UsersModule.render(); }, permission: 'manage_users' },
         'roles': { title: 'role_management', breadcrumb: 'multi_tenant / role_management', render: function () { return RolesModule.render(); }, permission: 'manage_roles' },
         'settings': { title: 'global_config', breadcrumb: 'param_config', render: function () { return SettingsModule.render(); } },
+        'push-styles': { title: 'push_styles', breadcrumb: 'system_manage / push_styles_management', render: function () { return PushStylesModule.render(); } },
         'profile': { title: 'profile', breadcrumb: 'user_center / profile', render: function () { return ProfileModule.render(); } },
         'audit': { title: 'audit_logs', breadcrumb: 'system_manage / audit_logs', render: function () { return AuditModule.render(); }, permission: 'manage_settings' }
     },

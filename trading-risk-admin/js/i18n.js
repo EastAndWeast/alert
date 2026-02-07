@@ -501,7 +501,19 @@ var I18n = {
             'confirm_delete_user_suffix': '?',
             'action_irreversible': 'This action is irreversible',
             'user_deleted': 'User deleted successfully',
-            'error_delete_failed': 'Delete failed'
+            'error_delete_failed': 'Delete failed',
+            'push_styles': 'Push Styles',
+            'push_styles_management': 'Push Styles Management',
+            'chinese_template': 'Chinese Template',
+            'english_template': 'English Template',
+            'platform_teams': 'MS Teams',
+            'platform_lark': 'Lark/Feishu',
+            'platform_telegram': 'Telegram',
+            'platform_slack': 'Slack',
+            'template_preview': 'Template Preview',
+            'template_edit': 'Edit Template',
+            'placeholder_template': 'Enter message template here...',
+            'template_saved': 'Template saved successfully'
         },
         'zh': {
             'system_title': 'RiskGuard Admin',
@@ -1058,7 +1070,19 @@ var I18n = {
             'confirm_delete_user_suffix': ' 吗？',
             'action_irreversible': '此操作不可恢复',
             'user_deleted': '用户已删除',
-            'error_delete_failed': '删除失败'
+            'error_delete_failed': '删除失败',
+            'push_styles': '推送样式',
+            'push_styles_management': '推送样式管理',
+            'chinese_template': '中文模板',
+            'english_template': '英文模板',
+            'platform_teams': 'Teams',
+            'platform_lark': '飞书/Lark',
+            'platform_telegram': 'Telegram',
+            'platform_slack': 'Slack',
+            'template_preview': '模板预览',
+            'template_edit': '编辑模板',
+            'placeholder_template': '请在此输入消息模板内容...',
+            'template_saved': '模板保存成功'
         }
     },
 

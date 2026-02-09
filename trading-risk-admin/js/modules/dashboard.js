@@ -75,8 +75,8 @@ var DashboardModule = {
                                 <thead>\
                                     <tr>\
                                         <th>' + I18n.t('rule_type_header') + '</th>\
+                                        <th>' + I18n.t('datasource_header') + '</th>\
                                         <th>' + I18n.t('account_header') + '</th>\
-                                        <th>' + I18n.t('data_source_header') + '</th>\
                                         <th>' + I18n.t('time_header') + '</th>\
                                         <th>' + I18n.t('status_header') + '</th>\
                                     </tr>\
@@ -106,9 +106,9 @@ var DashboardModule = {
         return alerts.map(function (alert) {
             return '\
                 <tr>\
-                    <td><span class="badge badge-' + Utils.getStatusClass(alert.status) + '">' + I18n.t(alert.rule_type) + '</span></td>\
-                    <td>' + alert.account_id + '</td>\
+                    <td><span class="badge badge-info">' + I18n.t(alert.rule_type) + '</span></td>\
                     <td>' + Utils.getSourceName(alert.source_id) + '</td>\
+                    <td>' + alert.account_id + '</td>\
                     <td>' + alert.trigger_time.split(' ')[1] + '</td>\
                     <td><span class="status-dot ' + (alert.status === 'new' ? 'danger' : 'active') + '"></span>' + I18n.t('status_' + alert.status) + '</td>\
                 </tr>';

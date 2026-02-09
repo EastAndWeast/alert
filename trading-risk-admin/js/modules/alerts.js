@@ -8,6 +8,7 @@ const AlertsModule = {
         status: 'all',
         platform: 'all',
         company: 'all',
+        datasource: 'all',
         date_start: '',
         date_end: ''
     },
@@ -59,6 +60,14 @@ const AlertsModule = {
             html += '<option value="' + c.company_id + '">' + c.company_name + '</option>';
         });
         html += '</select></div>';
+        html += '<div class="filter-group"><span class="filter-label">' + I18n.t('datasource_label') + '：</span>';
+        html += '<select class="filter-select" id="datasourceFilter" onchange="AlertsModule.applyFilters()">';
+        html += '<option value="all">' + I18n.t('all_datasources') + '</option>';
+        var dataSources = MockData.filterBySource(MockData.dataSources, sourceIds);
+        dataSources.forEach(function (ds) {
+            html += '<option value="' + ds.source_id + '">' + ds.source_name + '</option>';
+        });
+        html += '</select></div>';
         html += '<div class="filter-group"><span class="filter-label">' + I18n.t('rule_type_label') + '：</span>';
         html += '<select class="filter-select" id="ruleTypeFilter" onchange="AlertsModule.applyFilters()">';
         html += '<option value="all">' + I18n.t('all_types') + '</option>';
@@ -96,7 +105,7 @@ const AlertsModule = {
         html += '</div></div>';
         html += '<div class="card-body" style="padding: 0;">';
         html += '<div class="table-container"><table class="table"><thead><tr>';
-        html += '<th>' + I18n.t('alert_id_header') + '</th><th>' + I18n.t('company_header') + '</th><th>' + I18n.t('rule_type_header') + '</th><th>' + I18n.t('platform_header') + '</th><th>' + I18n.t('account_header') + '</th><th>' + I18n.t('symbol_header') + '</th><th>' + I18n.t('triggered_value_header') + '</th><th>' + I18n.t('details_header') + '</th><th>' + I18n.t('trigger_time_header') + '</th><th>' + I18n.t('status_header') + '</th><th>' + I18n.t('actions_header') + '</th>';
+        html += '<th>' + I18n.t('alert_id_header') + '</th><th>' + I18n.t('company_header') + '</th><th>' + I18n.t('datasource_header') + '</th><th>' + I18n.t('rule_type_header') + '</th><th>' + I18n.t('platform_header') + '</th><th>' + I18n.t('account_header') + '</th><th>' + I18n.t('symbol_header') + '</th><th>' + I18n.t('triggered_value_header') + '</th><th>' + I18n.t('details_header') + '</th><th>' + I18n.t('trigger_time_header') + '</th><th>' + I18n.t('status_header') + '</th><th>' + I18n.t('actions_header') + '</th>';
         html += '</tr></thead><tbody id="alertTableBody">';
         html += this.renderTableRows();
         html += '</tbody></table></div></div></div>';
@@ -114,6 +123,8 @@ const AlertsModule = {
                 var source = MockData.dataSources.find(function (ds) { return ds.source_id === a.source_id; });
                 if (!source || source.company_id !== self.filters.company) return false;
             }
+            // 数据源筛选
+            if (self.filters.datasource !== 'all' && a.source_id !== self.filters.datasource) return false;
             if (self.filters.rule_type !== 'all' && a.rule_type !== self.filters.rule_type) return false;
             if (self.filters.status !== 'all' && a.status !== self.filters.status) return false;
             if (self.filters.platform !== 'all' && a.platform !== self.filters.platform) return false;
@@ -143,6 +154,8 @@ const AlertsModule = {
             var row = '<tr>';
             row += '<td><code>' + alert.alert_id + '</code></td>';
             row += '<td><span class="badge badge-secondary">' + companyName + '</span></td>';
+            var sourceName = source ? source.source_name : '-';
+            row += '<td><span class="badge badge-info">' + sourceName + '</span></td>';
             row += '<td><span class="badge badge-' + typeInfo.color + '">' + typeInfo.icon + ' ' + typeInfo.name + '</span></td>';
             row += '<td><span class="badge badge-' + (alert.platform === 'MT4' ? 'primary' : 'success') + '">' + alert.platform + '</span></td>';
             row += '<td>' + alert.account_id + '</td>';
@@ -308,6 +321,7 @@ const AlertsModule = {
 
     applyFilters() {
         this.filters.company = document.getElementById('companyFilter').value;
+        this.filters.datasource = document.getElementById('datasourceFilter').value;
         this.filters.rule_type = document.getElementById('ruleTypeFilter').value;
         this.filters.status = document.getElementById('statusFilter').value;
         this.filters.platform = document.getElementById('platformFilter').value;

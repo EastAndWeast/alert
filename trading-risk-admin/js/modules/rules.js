@@ -189,13 +189,14 @@ const RulesModule = {
             html += '<p class="text-muted text-center">' + I18n.t('no_alerts') + '</p>';
         } else {
             html += '<table class="data-table"><thead><tr>';
-            html += '<th>' + I18n.t('time_header') + '</th><th>' + I18n.t('account_header') + '</th><th>' + I18n.t('symbol_header') + '</th><th>' + I18n.t('triggered_value_header') + '</th><th>' + I18n.t('status_header') + '</th>';
+            html += '<th>' + I18n.t('time_header') + '</th><th>' + I18n.t('datasource_header') + '</th><th>' + I18n.t('account_header') + '</th><th>' + I18n.t('symbol_header') + '</th><th>' + I18n.t('triggered_value_header') + '</th><th>' + I18n.t('status_header') + '</th>';
             html += '</tr></thead><tbody>';
             for (var i = 0; i < alerts.length; i++) {
                 var a = alerts[i];
                 var statusClass = Utils.getStatusClass(a.status);
                 html += '<tr>';
                 html += '<td>' + a.trigger_time + '</td>';
+                html += '<td><span class="badge badge-info">' + Utils.getSourceName(a.source_id) + '</span></td>';
                 html += '<td>' + a.account_id + '</td>';
                 html += '<td>' + a.product + '</td>';
                 var triggerValue = this.formatTriggerValue(ruleType, a.trigger_value, a);

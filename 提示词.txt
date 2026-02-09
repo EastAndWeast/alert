@@ -1,2 +1,227 @@
-关于推送样式的字段名称，我希望默认配置跟  告警记录里面的字段一样
-帮我推送到 github
+﻿Step Id: 0
+<USER_REQUEST>
+你好，我接下来。将与你讨论规则管理。  我将把原始规则发给你，然后你根据我们当前系统的设计，跟我一起讨论评估，
+1.是否可以满足客户的需求。 
+2.是否过渡设计：设计了不需要的内容
+
+我们先来讨论第一个需求：Large Trade（手数）}
+客户的原始需求：
+1.Large Trade 通过抓取MT4 trades 和MT5 的deals，当某个产品的开仓手数达到所设定的参数，例如（5手），则发出警报
+</USER_REQUEST>
+
+Step Id: 51
+<USER_REQUEST>
+从你的角度来看 是单笔成交更合适，还是单产品总持仓更合适。
+</USER_REQUEST>
+
+Step Id: 85
+<USER_REQUEST>
+感谢，白名单功能暂时不加，认可单订单的逻辑。
+
+我们先来讨论下一个需求：Large Trade（USD）
+客户的原始需求：
+1.Large Trade 通过抓取MT4 trades 和MT5 的deals，当某个产品的开仓的DealInUSD（MT5），OpenTradeInUSD（MT4） 达到所设定的参数，，则发出警报
+2.直接参考MT5的Deal in USD, MT4的 Open Trade In USD的算法
+
+1.产品会有虚拟币
+2.账户类型是USD、USC（美分）
+
+--
+超过多少时间，报几次
+3.还有其他货币账户，例如JPY, NZD, CAD, EUR, GBP等
+
+关注点
+1.是否可以满足客户的需求。 
+2.是否过渡设计：设计了不需要的内容
+
+另外目前的提示词.txt似乎乱码了，能帮我修复一下吗？
+</USER_REQUEST>
+
+Step Id: 86
+<USER_REQUEST>
+我们先来讨论下一个需求：Liquidity Trade
+客户的原始需求：
+1.Liquidity Trade 客户同短时间内开多张订单，每张订单都是小手数，但是加总超过10手以上，这样的交易行为是消耗市场深度，发出警报
+
+2.算法可以这样考虑：让平台自己设置参数，在多少秒以内，开了多少张同相同方向，相同产品的单子。举例：
+时间间隔：60s
+多少张相同方向的单子： 大于，或者大于等于2
+产品：可以让客户限定值看那些产品，或者symbols classification，例如XAUUSD，XAUUSD.r, AUDUSD, Metals, Forex
+3.产品大类需要做mapping，因为不同平台有不一样的产品名字。所以要做一个控制面板来设置不同平台的产品所属的产品大类
+2. 客户可以选择只看某几个产品，或者选择点击Metals这个产品大类，选择看Metals下面的产品，例如XAUUSD, XAUUSD.b, XAUCNH
+
+关注点
+1.是否可以满足客户的需求。
+2.是否过渡设计：设计了不需要的内容
+</USER_REQUEST>
+
+
+Step Id: 100
+<USER_REQUEST>
+里面有一个疑问，关于 相同方向，这个要怎么配置？ 当前有相关配置界面吗？
+</USER_REQUEST>
+
+
+Step Id: 101
+<USER_REQUEST>
+帮我新增这个提示文案
+</USER_REQUEST>
+
+
+Step Id: 102
+<USER_REQUEST>
+我们先来讨论下一个需求：Scalping
+客户的原始需求：
+1.当持仓时间（平仓时间 - 开仓时间），当所设定的参数小于持仓时间，则发出警报。同时可以多加filter，例如产品，手数，开仓的DealInUSD（MT5），OpenTradeInUSD（MT4），还有ProfitInUSD
+
+
+
+关注点
+1.是否可以满足客户的需求。
+2.是否过渡设计：设计了不需要的内容
+</USER_REQUEST>
+
+
+Step Id: 120
+<USER_REQUEST>
+Scalping的告警记录的列表，触发值似乎看不太懂。
+</USER_REQUEST>
+
+
+Step Id: 135
+<USER_REQUEST>
+方案D：给与更长的宽度，然后如果显示不全，放上去可以显示。
+</USER_REQUEST>
+
+
+Step Id: 165
+<USER_REQUEST>
+除了告警记录，请帮我列表页也处理一下。
+</USER_REQUEST>
+
+
+Step Id: 190
+<USER_REQUEST>
+请帮我排查剩余的规则
+1.把对应的列表页的触发值优化一下
+2.把告警记录的触发值优化一下
+</USER_REQUEST>
+
+
+Step Id: 260
+<USER_REQUEST>
+帮我上传到github
+</USER_REQUEST>
+
+
+Step Id: 290
+<USER_REQUEST>
+我们先来讨论下一个需求：Exposure Alert
+客户的原始需求：
+1.设定某个currency的exposure超过所设定的参数，进行警报，（需要进行计算）
+
+2.这个由我这边提供算法，目前需要mt5_symbols & mt5_prices 的API进行计算
+或者你那边根据我的算法思路，再由你那边做一个。
+
+--
+1.时间次数
+2.提醒次数      频率=次
+
+关注点
+1.是否可以满足客户的需求。
+2.是否过渡设计：设计了不需要的内容
+</USER_REQUEST>
+
+
+Step Id: 325
+<USER_REQUEST>
+这个需求已经可以了。让我们下一个需求分析。
+
+我们讨论下一个需求：Prcing Alert
+客户的原始需求：
+1.读取每个产品的Trading Session，当该产品在Trading session里面停止报价大于所设置的参数，例如30秒，则发出警报。参数可以根据symbol或者asset设置
+
+2.让客户根据不同的symbol classification，或者不同的symbols，设置价格stop pricing XXs, 报警（这个可以）
+3.另外看看是否能不能做另一个Volatility alert，前一分钟的High 减去 low 大于设置的数值，报警。数值可以百分比。或者是points，points是直接等于 High - Low
+
+示例一正确
+示例二，points是代表产品的小数点最后一位。也就是说具体看某个产品所设置的digits（小数点）。举例：如果设置XAUUSD（假设该产品的小数位是两位）的points为3，则是High 2300.50 - 0.03 = 2300.47（low）
+
+关注点
+1.是否可以满足客户的需求。
+2.是否过渡设计：设计了不需要的内容
+</USER_REQUEST>
+
+
+Step Id: 340
+<USER_REQUEST>
+这个需求已经可以了。让我们下一个需求分析。
+
+我们讨论下一个需求：NOP Limit 
+客户的原始需求：
+当产品的净头寸的数值超过所设定的参数，则进行报警。举例：客户可以设置某一个产品的净头寸，例如XAUUSD，超过5000，则进行报警。
+算法：contract size * volume / 10000 (MT5)，如果是MT4则要除以100。
+Buy：contract size * volume / 10000
+Sell: -1 * contract size * volume / 10000
+NOP: Buy + Sell的绝对值
+
+关注点
+1.是否可以满足客户的需求。
+2.是否过渡设计：设计了不需要的内容
+</USER_REQUEST>
+
+
+Step Id: 378
+<USER_REQUEST>
+好的，那保留。
+这个界面的翻译需要改一下。   净头寸告警 改为 敞口告警
+</USER_REQUEST>
+
+
+Step Id: 390
+<USER_REQUEST>
+这个需求已经可以了。让我们下一个需求分析。
+
+我们讨论下一个需求：Watch List 
+客户的原始需求：
+1.客户可以设置当某一个账号，有新开的订单时候，则进行报警
+
+关注点
+1.是否可以满足客户的需求。
+2.是否过渡设计：设计了不需要的内容
+</USER_REQUEST>
+
+
+Step Id: 428
+<USER_REQUEST>
+alert_priority有什么作用？
+</USER_REQUEST>
+
+<USER_REQUEST>
+那暂时把这个字段去掉吧
+</USER_REQUEST>
+
+
+Step Id: 473
+<USER_REQUEST>
+请在外面显示
+1.监控账户
+2.监控动作
+3.最小手数限制
+
+让客户方便了解配置详情
+</USER_REQUEST>
+
+
+Step Id: 482
+<USER_REQUEST>
+请帮我检查一下，我希望所有规则的列表页，可以直接看到对应具体的规则，而不是点击详情进去。
+
+如果目前未实现这个需求，请帮我完善一下。
+</USER_REQUEST>
+
+
+Step Id: 492
+<USER_REQUEST>
+开始实施
+</USER_REQUEST>

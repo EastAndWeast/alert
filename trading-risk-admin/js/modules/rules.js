@@ -126,28 +126,42 @@ const RulesModule = {
             case 'exposure_alert':
                 html += '<div class="param-item"><strong>' + I18n.t('target_currency_label') + '：</strong>' + p.target_currency + '</div>';
                 html += '<div class="param-item"><strong>' + I18n.t('exposure_threshold_label') + '：</strong>' + Utils.formatNumber(p.exposure_threshold) + '</div>';
+                html += '<div class="param-item"><strong>' + I18n.t('time_interval_label') + '：</strong>' + p.time_interval + ' ' + I18n.t('unit_seconds') + '</div>';
+                html += '<div class="param-item"><strong>' + I18n.t('max_remind_count_label') + '：</strong>' + p.max_remind_count + ' ' + I18n.t('times') + '</div>';
                 break;
             case 'pricing_volatility':
                 html += '<div class="param-item"><strong>' + I18n.t('stop_pricing_duration_label') + '：</strong>' + p.pricing.stop_pricing_duration + ' ' + I18n.t('unit_seconds') + '</div>';
-                html += '<div class="param-item"><strong>' + I18n.t('volatility_mode_label') + '：</strong>' + p.volatility.mode + '</div>';
+                var volatilityThreshold = p.volatility.mode === 'PERCENTAGE' ? p.volatility.threshold + '%' : p.volatility.threshold + ' ' + I18n.t('points');
+                html += '<div class="param-item"><strong>' + I18n.t('volatility_threshold_label') + '：</strong>' + volatilityThreshold + ' (' + p.volatility.mode + ')</div>';
                 html += '<div class="param-item"><strong>' + I18n.t('monitor_symbols_label') + '：</strong>' + (p.pricing.scope && p.pricing.scope.length ? p.pricing.scope.join(', ') : I18n.t('all')) + '</div>';
                 break;
             case 'nop_limit':
-                html += '<div class="param-item"><strong>' + I18n.t('symbol_name_label') + '：</strong>' + p.symbol_name + '</div>';
+                var platformCoeff = p.platform_type === 'MT5' ? '10000' : '100';
+                html += '<div class="param-item"><strong>' + I18n.t('platform_type_label') + '：</strong>' + p.platform_type + ' (' + I18n.t('coefficient') + ': ' + platformCoeff + ')</div>';
                 html += '<div class="param-item"><strong>' + I18n.t('nop_threshold_label') + '：</strong>' + Utils.formatNumber(p.nop_threshold) + '</div>';
                 html += '<div class="param-item"><strong>' + I18n.t('monitor_symbols_label') + '：</strong>' + (p.symbol_filter && p.symbol_filter.length ? p.symbol_filter.join(', ') : I18n.t('all')) + '</div>';
+                html += '<div class="param-item"><strong>' + I18n.t('calculation_frequency_label') + '：</strong>' + p.calculation_frequency + ' ' + I18n.t('unit_seconds') + '</div>';
+                html += '<div class="param-item"><strong>' + I18n.t('alert_cooldown_label') + '：</strong>' + p.alert_cooldown + ' ' + I18n.t('unit_seconds') + '</div>';
                 break;
             case 'watch_list':
-                html += '<div class="param-item"><strong>' + I18n.t('monitored_accounts_label') + '：</strong>' + p.watched_accounts.length + ' ' + I18n.t('unit_items') + '</div>';
-                html += '<div class="param-item"><strong>' + I18n.t('priority_label') + '：</strong>' + p.alert_priority + '</div>';
+                html += '<div class="param-item"><strong>' + I18n.t('monitored_accounts_label') + '：</strong>' + p.watched_accounts.join(', ') + '</div>';
+                var actions = [];
+                if (p.monitoring_actions.indexOf('OPEN_TRADE') >= 0) actions.push(I18n.t('open_trade'));
+                if (p.monitoring_actions.indexOf('PENDING_ORDER') >= 0) actions.push(I18n.t('pending_order'));
+                html += '<div class="param-item"><strong>' + I18n.t('monitoring_actions_label') + '：</strong>' + actions.join(', ') + '</div>';
+                html += '<div class="param-item"><strong>' + I18n.t('min_lots_limit_label') + '：</strong>' + p.lots_min_limit + ' ' + I18n.t('lot_unit') + '</div>';
                 break;
             case 'reverse_positions':
                 html += '<div class="param-item"><strong>' + I18n.t('max_reverse_interval_label') + '：</strong>' + p.max_reverse_interval + ' ' + I18n.t('unit_seconds') + '</div>';
                 html += '<div class="param-item"><strong>' + I18n.t('min_reverse_lot_label') + '：</strong>' + p.min_reverse_lot + ' ' + I18n.t('unit_lots') + '</div>';
+                html += '<div class="param-item"><strong>' + I18n.t('min_reverse_value_usd_label') + '：</strong>$' + Utils.formatNumber(p.min_reverse_value_usd) + '</div>';
+                html += '<div class="param-item"><strong>' + I18n.t('cooldown_period_label') + '：</strong>' + p.cooldown_period + ' ' + I18n.t('unit_seconds') + '</div>';
                 break;
             case 'deposit_withdrawal':
                 html += '<div class="param-item"><strong>' + I18n.t('deposit_threshold_label') + '：</strong>$' + Utils.formatNumber(p.deposit_threshold) + '</div>';
                 html += '<div class="param-item"><strong>' + I18n.t('withdrawal_threshold_label') + '：</strong>$' + Utils.formatNumber(p.withdrawal_threshold) + '</div>';
+                var keywordText = (p.keywords && p.keywords.length) ? p.keywords.join(', ') : I18n.t('all');
+                html += '<div class="param-item"><strong>' + I18n.t('keywords_label') + '：</strong>' + keywordText + '</div>';
                 break;
         }
         html += '</div>';
@@ -593,10 +607,6 @@ const RulesModule = {
                 html += '<div class="form-group"><label>' + I18n.t('monitoring_actions_label') + '</label>';
                 html += '<label class="checkbox-inline"><input type="checkbox" name="action_open" ' + (p && p.monitoring_actions.indexOf('OPEN_TRADE') >= 0 ? 'checked' : 'checked') + '> ' + I18n.t('open_trade') + '</label>';
                 html += '<label class="checkbox-inline"><input type="checkbox" name="action_pending" ' + (p && p.monitoring_actions.indexOf('PENDING_ORDER') >= 0 ? 'checked' : '') + '> ' + I18n.t('pending_order') + '</label></div>';
-                html += '<div class="form-group"><label>' + I18n.t('alert_priority_label') + '</label><select name="alert_priority" class="form-control">';
-                html += '<option value="HIGH"' + (p && p.alert_priority === 'HIGH' ? ' selected' : '') + '>' + I18n.t('high') + ' (' + I18n.t('red') + ')</option>';
-                html += '<option value="INFO"' + (p && p.alert_priority === 'INFO' ? ' selected' : '') + '>' + I18n.t('normal') + ' (' + I18n.t('blue') + ')</option>';
-                html += '</select></div>';
                 html += '<div class="form-group"><label>' + I18n.t('min_lots_limit_label') + '</label>';
                 html += '<input type="number" name="lots_min_limit" class="form-control" step="0.01" value="' + (p ? p.lots_min_limit : 0.01) + '"></div>';
                 html += '<div class="rule-tip">' + I18n.t('rule_tip_watch_list') + '</div>';

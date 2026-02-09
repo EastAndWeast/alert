@@ -147,7 +147,7 @@ const AlertsModule = {
             row += '<td><span class="badge badge-' + (alert.platform === 'MT4' ? 'primary' : 'success') + '">' + alert.platform + '</span></td>';
             row += '<td>' + alert.account_id + '</td>';
             row += '<td>' + alert.product + '</td>';
-            row += '<td><strong>' + self.formatTriggerValue(alert) + '</strong></td>';
+            row += '<td class="trigger-value-cell" title="' + self.formatTriggerValue(alert) + '"><strong>' + self.formatTriggerValue(alert) + '</strong></td>';
             row += '<td>' + self.formatDetails(alert) + '</td>';
             row += '<td>' + alert.trigger_time + '</td>';
             row += '<td><span class="status-dot ' + statusClass + '"></span>' + self.getStatusText(alert.status) + '</td>';
@@ -189,13 +189,102 @@ const AlertsModule = {
     formatTriggerValue(alert) {
         var t = alert.rule_type;
         var v = alert.trigger_value;
+        var d = alert.details || {};
 
-        if (t === 'large_trade_lots') return v + ' ' + I18n.t('lot_unit');
-        if (t === 'large_trade_usd' || t === 'deposit_withdrawal' || t === 'exposure_alert') return '$' + Utils.formatNumber(Math.abs(v));
-        if (t === 'liquidity_trade') return v + ' ' + I18n.t('lot_unit');
-        if (t === 'scalping' || t === 'pricing_volatility' || t === 'reverse_positions') return v + 's';
-        if (t === 'nop_limit') return Utils.formatNumber(v);
-        if (t === 'watch_list') return v + ' ' + I18n.t('lot_unit');
+        // 1. Large Trade (Lots) - 手数 | 方向
+        if (t === 'large_trade_lots') {
+            var parts = [v + ' ' + I18n.t('lot_unit')];
+            if (d.direction) parts.push(d.direction);
+            return parts.join(' | ');
+        }
+
+        // 2. Large Trade (USD) - USD | 手数
+        if (t === 'large_trade_usd') {
+            var parts = ['$' + Utils.formatNumber(Math.abs(v))];
+            if (d.lots) parts.push(d.lots + I18n.t('lot_unit'));
+            return parts.join(' | ');
+        }
+
+        // 3. Liquidity Trade - 手数 | 订单数 | 方向
+        if (t === 'liquidity_trade') {
+            var parts = [v + I18n.t('lot_unit')];
+            if (d.order_count) parts.push(d.order_count + I18n.t('unit_orders'));
+            if (d.direction) parts.push(d.direction);
+            return parts.join(' | ');
+        }
+
+        // 4. Scalping - 时间 | 手数 | 盈利
+        if (t === 'scalping') {
+            var parts = [v + 's'];
+            if (d.lots) parts.push(d.lots + I18n.t('lot_unit'));
+            if (d.profit_usd !== undefined) {
+                var profit = (d.profit_usd >= 0 ? '+$' : '-$') + Utils.formatNumber(Math.abs(d.profit_usd));
+                parts.push(profit);
+            }
+            return parts.join(' | ');
+        }
+
+        // 5. Exposure Alert - USD | 方向 货币
+        if (t === 'exposure_alert') {
+            var parts = ['$' + Utils.formatNumber(Math.abs(v))];
+            if (d.direction && d.currency) {
+                parts.push(d.direction + ' ' + d.currency);
+            }
+            return parts.join(' | ');
+        }
+
+        // 6. Pricing & Volatility - 分类显示
+        if (t === 'pricing_volatility') {
+            if (d.alert_subtype === 'PRICING') {
+                return v + 's | ' + I18n.t('pricing_stop');
+            } else if (d.alert_subtype === 'VOLATILITY') {
+                return (d.change_points || v) + I18n.t('unit_points') + ' | ' + I18n.t('volatility');
+            }
+            return v + 's';
+        }
+
+        // 7. NOP Limit - 手数 | 方向 | USD
+        if (t === 'nop_limit') {
+            var parts = [];
+            if (d.net_position) parts.push(d.net_position + I18n.t('lot_unit'));
+            if (d.direction) parts.push(d.direction);
+            parts.push('$' + Utils.formatNumber(v));
+            return parts.join(' | ');
+        }
+
+        // 8. Watch List - 手数 | 方向 | 动作
+        if (t === 'watch_list') {
+            var parts = [v + ' ' + I18n.t('lot_unit')];
+            if (d.direction) parts.push(d.direction);
+            if (d.action) {
+                var actionText = d.action === 'OPEN_TRADE' ? I18n.t('open_trade') : I18n.t('pending_order');
+                parts.push(actionText);
+            }
+            return parts.join(' | ');
+        }
+
+        // 9. Reverse Positions - 时间 | 方向转换 | 手数变化
+        if (t === 'reverse_positions') {
+            var parts = [v + 's'];
+            if (d.close_direction && d.open_direction) {
+                parts.push(d.close_direction + '→' + d.open_direction);
+            }
+            if (d.close_lots && d.open_lots) {
+                parts.push(d.close_lots + '→' + d.open_lots + I18n.t('lot_unit'));
+            }
+            return parts.join(' | ');
+        }
+
+        // 10. Deposit & Withdrawal - USD | 类型
+        if (t === 'deposit_withdrawal') {
+            var parts = ['$' + Utils.formatNumber(Math.abs(v))];
+            if (d.type) {
+                var typeText = d.type === 'DEPOSIT' ? I18n.t('deposit') : I18n.t('withdrawal');
+                parts.push(typeText);
+            }
+            return parts.join(' | ');
+        }
+
         return v;
     },
 

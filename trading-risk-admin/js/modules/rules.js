@@ -184,7 +184,8 @@ const RulesModule = {
                 html += '<td>' + a.trigger_time + '</td>';
                 html += '<td>' + a.account_id + '</td>';
                 html += '<td>' + a.product + '</td>';
-                html += '<td>' + this.formatTriggerValue(ruleType, a.trigger_value) + '</td>';
+                var triggerValue = this.formatTriggerValue(ruleType, a.trigger_value, a);
+                html += '<td class="trigger-value-cell" title="' + triggerValue + '">' + triggerValue + '</td>';
                 html += '<td><span class="status-badge ' + statusClass + '">' + a.status + '</span></td>';
                 html += '</tr>';
             }
@@ -194,14 +195,105 @@ const RulesModule = {
         return html;
     },
 
-    formatTriggerValue(ruleType, value) {
-        if (ruleType.indexOf('usd') >= 0 || ruleType === 'deposit_withdrawal' || ruleType === 'exposure') {
-            return '$' + Utils.formatNumber(value);
+    formatTriggerValue(ruleType, value, alert) {
+        var v = value;
+        var d = (alert && alert.details) || {};
+
+        // 1. Large Trade (Lots)
+        if (ruleType === 'large_trade_lots') {
+            var parts = [v + ' ' + I18n.t('lot_unit')];
+            if (d.direction) parts.push(d.direction);
+            return parts.join(' | ');
         }
-        if (ruleType === 'scalping' || ruleType.indexOf('pricing') >= 0) {
-            return value + 's';
+
+        // 2. Large Trade (USD)
+        if (ruleType === 'large_trade_usd' || ruleType.indexOf('usd') >= 0) {
+            var parts = ['$' + Utils.formatNumber(Math.abs(v))];
+            if (d.lots) parts.push(d.lots + I18n.t('lot_unit'));
+            return parts.join(' | ');
         }
-        return value;
+
+        // 3. Liquidity Trade
+        if (ruleType === 'liquidity_trade') {
+            var parts = [v + I18n.t('lot_unit')];
+            if (d.order_count) parts.push(d.order_count + I18n.t('unit_orders'));
+            if (d.direction) parts.push(d.direction);
+            return parts.join(' | ');
+        }
+
+        // 4. Scalping
+        if (ruleType === 'scalping') {
+            var parts = [v + 's'];
+            if (d.lots) parts.push(d.lots + I18n.t('lot_unit'));
+            if (d.profit_usd !== undefined) {
+                var profit = (d.profit_usd >= 0 ? '+$' : '-$') + Utils.formatNumber(Math.abs(d.profit_usd));
+                parts.push(profit);
+            }
+            return parts.join(' | ');
+        }
+
+        // 5. Exposure Alert
+        if (ruleType === 'exposure_alert' || ruleType === 'exposure') {
+            var parts = ['$' + Utils.formatNumber(Math.abs(v))];
+            if (d.direction && d.currency) {
+                parts.push(d.direction + ' ' + d.currency);
+            }
+            return parts.join(' | ');
+        }
+
+        // 6. Pricing & Volatility
+        if (ruleType === 'pricing_volatility' || ruleType.indexOf('pricing') >= 0) {
+            if (d.alert_subtype === 'PRICING') {
+                return v + 's | ' + I18n.t('pricing_stop');
+            } else if (d.alert_subtype === 'VOLATILITY') {
+                return (d.change_points || v) + I18n.t('unit_points') + ' | ' + I18n.t('volatility');
+            }
+            return v + 's';
+        }
+
+        // 7. NOP Limit
+        if (ruleType === 'nop_limit') {
+            var parts = [];
+            if (d.net_position) parts.push(d.net_position + I18n.t('lot_unit'));
+            if (d.direction) parts.push(d.direction);
+            parts.push('$' + Utils.formatNumber(v));
+            return parts.join(' | ');
+        }
+
+        // 8. Watch List
+        if (ruleType === 'watch_list') {
+            var parts = [v + ' ' + I18n.t('lot_unit')];
+            if (d.direction) parts.push(d.direction);
+            if (d.action) {
+                var actionText = d.action === 'OPEN_TRADE' ? I18n.t('open_trade') : I18n.t('pending_order');
+                parts.push(actionText);
+            }
+            return parts.join(' | ');
+        }
+
+        // 9. Reverse Positions
+        if (ruleType === 'reverse_positions') {
+            var parts = [v + 's'];
+            if (d.close_direction && d.open_direction) {
+                parts.push(d.close_direction + '→' + d.open_direction);
+            }
+            if (d.close_lots && d.open_lots) {
+                parts.push(d.close_lots + '→' + d.open_lots + I18n.t('lot_unit'));
+            }
+            return parts.join(' | ');
+        }
+
+        // 10. Deposit & Withdrawal
+        if (ruleType === 'deposit_withdrawal') {
+            var parts = ['$' + Utils.formatNumber(Math.abs(v))];
+            if (d.type) {
+                var typeText = d.type === 'DEPOSIT' ? I18n.t('deposit') : I18n.t('withdrawal');
+                parts.push(typeText);
+            }
+            return parts.join(' | ');
+        }
+
+        return v;
     },
 
     // ==================== 10种告警类型渲染方法 ====================

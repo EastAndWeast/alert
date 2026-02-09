@@ -549,6 +549,20 @@ button {
     background: rgba(255, 255, 255, 0.02);
 }
 
+/* 触发值列特殊样式 */
+.trigger-value-cell {
+    min-width: 180px;
+    max-width: 250px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.trigger-value-cell strong {
+    cursor: help;
+}
+
+
 /* 按钮 */
 .btn {
     display: inline-flex;

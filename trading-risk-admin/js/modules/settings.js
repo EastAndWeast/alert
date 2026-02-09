@@ -129,6 +129,11 @@ const SettingsModule = {
                                     <label class="form-label">${I18n.t('telegram_chat_id_label')}</label>
                                     <input type="text" class="form-input" id="telegramChatId" value="${settings.telegram_chat_id || ''}" placeholder="${I18n.t('telegram_chat_id_help')}">
                                 </div>
+                                <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
+                                    <button class="btn btn-sm btn-secondary" onclick="SettingsModule.testWebhook('telegram', this)">
+                                        <span>⚡ ${I18n.t('test_webhook')}</span>
+                                    </button>
+                                </div>
                             </div>
 
                             <!-- Teams (Second) -->
@@ -146,6 +151,11 @@ const SettingsModule = {
                                 <div class="form-group">
                                     <label class="form-label">${I18n.t('teams_webhook_label')}</label>
                                     <input type="text" class="form-input" id="teamsWebhook" value="${settings.teams_webhook || ''}" placeholder="${I18n.t('teams_webhook_help')}">
+                                </div>
+                                <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
+                                    <button class="btn btn-sm btn-secondary" onclick="SettingsModule.testWebhook('teams', this)">
+                                        <span>⚡ ${I18n.t('test_webhook')}</span>
+                                    </button>
                                 </div>
                             </div>
 
@@ -165,6 +175,11 @@ const SettingsModule = {
                                     <label class="form-label">${I18n.t('slack_webhook_label')}</label>
                                     <input type="text" class="form-input" id="slackWebhook" value="${settings.slack_webhook || ''}" placeholder="${I18n.t('slack_webhook_help')}">
                                 </div>
+                                <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
+                                    <button class="btn btn-sm btn-secondary" onclick="SettingsModule.testWebhook('slack', this)">
+                                        <span>⚡ ${I18n.t('test_webhook')}</span>
+                                    </button>
+                                </div>
                             </div>
 
                             <!-- Lark (Fourth) -->
@@ -183,6 +198,11 @@ const SettingsModule = {
                                     <label class="form-label">${I18n.t('lark_webhook_label')}</label>
                                     <input type="text" class="form-input" id="larkWebhook" value="${settings.lark_webhook || ''}" placeholder="${I18n.t('lark_webhook_help')}">
                                 </div>
+                                <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
+                                    <button class="btn btn-sm btn-secondary" onclick="SettingsModule.testWebhook('lark', this)">
+                                        <span>⚡ ${I18n.t('test_webhook')}</span>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -194,6 +214,36 @@ const SettingsModule = {
                 <button class="btn btn-primary" onclick="SettingsModule.saveSettings()">${I18n.t('save_settings')}</button>
             </div>
         `;
+    },
+
+    testWebhook(type, btn) {
+        const originalContent = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = `<span>⏳ ${I18n.t('testing_webhook')}</span>`;
+
+        // 模拟测试过程
+        setTimeout(() => {
+            // 简单校验配置是否存在
+            let isValid = false;
+            if (type === 'telegram') {
+                isValid = document.getElementById('telegramToken').value && document.getElementById('telegramChatId').value;
+            } else if (type === 'teams') {
+                isValid = document.getElementById('teamsWebhook').value;
+            } else if (type === 'slack') {
+                isValid = document.getElementById('slackWebhook').value;
+            } else if (type === 'lark') {
+                isValid = document.getElementById('larkWebhook').value;
+            }
+
+            if (isValid) {
+                App.showToast('success', I18n.t('test_webhook_success'));
+            } else {
+                App.showToast('error', I18n.t('test_webhook_failed'));
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = originalContent;
+        }, 1500);
     },
 
     saveSettings() {

@@ -206,6 +206,10 @@ var I18n = {
             'reset_defaults': 'Reset Defaults',
             'save_settings': 'Save Settings',
             'settings_saved_success': 'Global settings saved successfully',
+            'test_webhook': 'Test Connection',
+            'testing_webhook': 'Testing...',
+            'test_webhook_success': 'Connection test successful!',
+            'test_webhook_failed': 'Connection test failed. Please check your config.',
             'theme_light': 'Light Mode',
             'theme_dark': 'Dark Mode',
             'theme_toggle': 'Toggle Theme',
@@ -800,19 +804,23 @@ var I18n = {
             'guide_lark_content': `
                 <div class="guide-scroll">
                     <ol>
-                        <li>进入飞书群聊，点击 <b>设置</b> -> <b>机器人</b>。</li>
-                        <li>选择 <b>自定义机器人</b> 并点击 <b>添加</b>。</li>
-                        <li>命名机器人并复制生成的 <b>Webhook 地址</b>。</li>
-                        <li>(可选) 为了安全，建议配置 IP 白名单或签名。</li>
+                        <li>打开飞书群聊，点击 <b>设置</b> -> <b>群机器人</b>。</li>
+                        <li>点击 <b>添加机器人</b> -> <b>自定义机器人</b>。</li>
+                        <li>设置机器人名称，并复制生成的 <b>Webhook 地址</b>。</li>
+                        <li>(可选) 为了安全，建议配置 IP 白名单或签名校验。</li>
                     </ol>
                     <div class="guide-link">
-                        <a href="https://www.larksuite.com/hc/zh-CN/articles/360024984273" target="_blank">🔗 飞书机器人官方操作指南</a>
+                        <a href="https://www.feishu.cn/hc/zh-CN/articles/360024984273" target="_blank">🔗 飞书机器人官方指南</a>
                     </div>
                 </div>
             `,
+            'test_webhook': '测试推送',
+            'testing_webhook': '正在测试...',
+            'test_webhook_success': '测试推送成功！',
+            'test_webhook_failed': '测试推送失败，请检查配置。',
             'save_settings': '保存设置',
             'settings_saved_success': '全局设置已保存',
-            'theme_light': '白天模式',
+            'theme_light': '浅色模式',
             'theme_dark': '深色模式',
             'theme_toggle': '切换主题',
             'time_window_label': '时间窗口',

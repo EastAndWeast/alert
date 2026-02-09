@@ -229,3 +229,5 @@ Step Id: 520
 
 帮我输出文档
 </USER_REQUEST>
+System.Collections.ArrayList+ArrayListEnumeratorSimple
+System.Collections.ArrayList+ArrayListEnumeratorSimple

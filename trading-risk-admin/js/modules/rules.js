@@ -160,8 +160,8 @@ const RulesModule = {
             case 'deposit_withdrawal':
                 html += '<div class="param-item"><strong>' + I18n.t('deposit_threshold_label') + '：</strong>$' + Utils.formatNumber(p.deposit_threshold) + '</div>';
                 html += '<div class="param-item"><strong>' + I18n.t('withdrawal_threshold_label') + '：</strong>$' + Utils.formatNumber(p.withdrawal_threshold) + '</div>';
-                var keywordText = (p.keywords && p.keywords.length) ? p.keywords.join(', ') : I18n.t('all');
-                html += '<div class="param-item"><strong>' + I18n.t('keywords_label') + '：</strong>' + keywordText + '</div>';
+                var keywordText = (p.include_keywords && p.include_keywords.length) ? p.include_keywords.join(', ') : I18n.t('all');
+                html += '<div class="param-item"><strong>' + I18n.t('include_keywords_label') + '：</strong>' + keywordText + '</div>';
                 break;
         }
         html += '</div>';
@@ -632,8 +632,6 @@ const RulesModule = {
                 html += '<input type="number" name="withdrawal_threshold" class="form-control" value="' + (p ? p.withdrawal_threshold : 5000) + '" required></div>';
                 html += '<div class="form-group"><label>' + I18n.t('include_keywords_label') + ' (' + I18n.t('comma_separated') + ')</label>';
                 html += '<input type="text" name="include_keywords" class="form-control" value="' + (p ? p.include_keywords.join(',') : 'Deposit,Withdraw,External') + '"></div>';
-                html += '<div class="form-group"><label>' + I18n.t('exclude_keywords_label') + ' (' + I18n.t('comma_separated') + ')</label>';
-                html += '<input type="text" name="exclude_keywords" class="form-control" value="' + (p ? p.exclude_keywords.join(',') : 'Transfer,Adjustment') + '"></div>';
                 html += '<div class="rule-tip">' + I18n.t('rule_tip_deposit_withdrawal') + '</div>';
                 break;
         }
@@ -766,7 +764,6 @@ const RulesModule = {
                 p.deposit_threshold = parseFloat(formData.get('deposit_threshold'));
                 p.withdrawal_threshold = parseFloat(formData.get('withdrawal_threshold'));
                 p.include_keywords = formData.get('include_keywords') ? formData.get('include_keywords').split(',').map(function (s) { return s.trim(); }).filter(function (s) { return s; }) : [];
-                p.exclude_keywords = formData.get('exclude_keywords') ? formData.get('exclude_keywords').split(',').map(function (s) { return s.trim(); }).filter(function (s) { return s; }) : [];
                 p.monitoring_source = 'REAL_ONLY';
                 break;
         }

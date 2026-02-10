@@ -21,12 +21,12 @@ const MockData = {
 
     // 用户
     users: [
-        { user_id: 'U001', username: 'superadmin', password: 'admin123', email: 'sa@system.com', role: 'super_admin', company_id: null, datasource_ids: [], status: 'active', display_name: '超级管理员', created_at: '2023-01-01' },
-        { user_id: 'U002', username: 'alpha_admin', password: 'alpha123', email: 'admin@alpha.com', role: 'company_admin', company_id: 'C001', datasource_ids: ['DS001', 'DS002'], status: 'active', display_name: 'Alpha 管理员', created_at: '2023-01-16' },
-        { user_id: 'U003', username: 'alpha_user', password: 'alpha123', email: 'user@alpha.com', role: 'company_user', company_id: 'C001', datasource_ids: ['DS001'], status: 'active', display_name: 'Alpha 操作员', created_at: '2023-02-10' },
-        { user_id: 'U004', username: 'alpha_viewer', password: 'alpha123', email: 'viewer@alpha.com', role: 'viewer', company_id: 'C001', datasource_ids: ['DS001', 'DS002'], status: 'active', display_name: 'Alpha 只读', created_at: '2023-03-05' },
-        { user_id: 'U005', username: 'beta_admin', password: 'beta123', email: 'admin@beta.com', role: 'company_admin', company_id: 'C002', datasource_ids: ['DS003'], status: 'active', display_name: 'Beta 管理员', created_at: '2023-03-21' },
-        { user_id: 'U006', username: 'beta_viewer', password: 'beta123', email: 'viewer@beta.com', role: 'viewer', company_id: 'C002', datasource_ids: ['DS003'], status: 'active', display_name: 'Beta 只读', created_at: '2023-04-15' }
+        { user_id: 'U001', username: 'sa@system.com', password: 'admin123', email: 'sa@system.com', role: 'super_admin', company_id: null, datasource_ids: [], status: 'active', display_name: '超级管理员', created_at: '2023-01-01' },
+        { user_id: 'U002', username: 'admin@alpha.com', password: 'alpha123', email: 'admin@alpha.com', role: 'company_admin', company_id: 'C001', datasource_ids: ['DS001', 'DS002'], status: 'active', display_name: 'Alpha 管理员', created_at: '2023-01-16' },
+        { user_id: 'U003', username: 'user@alpha.com', password: 'alpha123', email: 'user@alpha.com', role: 'company_user', company_id: 'C001', datasource_ids: ['DS001'], status: 'active', display_name: 'Alpha 操作员', created_at: '2023-02-10' },
+        { user_id: 'U004', username: 'viewer@alpha.com', password: 'alpha123', email: 'viewer@alpha.com', role: 'viewer', company_id: 'C001', datasource_ids: ['DS001', 'DS002'], status: 'active', display_name: 'Alpha 只读', created_at: '2023-03-05' },
+        { user_id: 'U005', username: 'admin@beta.com', password: 'beta123', email: 'admin@beta.com', role: 'company_admin', company_id: 'C002', datasource_ids: ['DS003'], status: 'active', display_name: 'Beta 管理员', created_at: '2023-03-21' },
+        { user_id: 'U006', username: 'viewer@beta.com', password: 'beta123', email: 'viewer@beta.com', role: 'viewer', company_id: 'C002', datasource_ids: ['DS003'], status: 'active', display_name: 'Beta 只读', created_at: '2023-04-15' }
     ],
 
     // 用户ID计数器
@@ -140,8 +140,8 @@ const MockData = {
         { rule_id: 'R081', source_id: 'DS003', rule_type: 'reverse_positions', name: 'Reverse Positions', description: '监控平仓后反向开仓行为', icon: '🔀', enabled: true, parameters: { max_reverse_interval: 10, min_reverse_lot: 0.5, min_reverse_value_usd: 50000.0, symbol_match_level: 'EXACT_MATCH', cooldown_period: 120 }, trigger_action: 'alert', triggered_count: 2 },
 
         // 10. Deposit & Withdrawal - 出入金监控
-        { rule_id: 'R090', source_id: 'DS001', rule_type: 'deposit_withdrawal', name: 'Deposit & Withdrawal', description: '监控大额出入金行为', icon: '💳', enabled: true, parameters: { deposit_threshold: 10000.0, withdrawal_threshold: 5000.0, include_keywords: ['Deposit', 'Withdraw', 'External'], exclude_keywords: ['Transfer', 'Adjustment', 'IB_Pay'], monitoring_source: 'REAL_ONLY' }, trigger_action: 'alert', triggered_count: 7 },
-        { rule_id: 'R091', source_id: 'DS003', rule_type: 'deposit_withdrawal', name: 'Deposit & Withdrawal', description: '监控大额出入金行为', icon: '💳', enabled: true, parameters: { deposit_threshold: 50000.0, withdrawal_threshold: 25000.0, include_keywords: ['Deposit', 'Withdraw'], exclude_keywords: ['Transfer'], monitoring_source: 'REAL_ONLY' }, trigger_action: 'alert', triggered_count: 2 }
+        { rule_id: 'R090', source_id: 'DS001', rule_type: 'deposit_withdrawal', name: 'Deposit & Withdrawal', description: '监控大额出入金行为', icon: '💳', enabled: true, parameters: { deposit_threshold: 10000.0, withdrawal_threshold: 5000.0, include_keywords: ['Deposit', 'Withdraw', 'External'], monitoring_source: 'REAL_ONLY' }, trigger_action: 'alert', triggered_count: 7 },
+        { rule_id: 'R091', source_id: 'DS003', rule_type: 'deposit_withdrawal', name: 'Deposit & Withdrawal', description: '监控大额出入金行为', icon: '💳', enabled: true, parameters: { deposit_threshold: 50000.0, withdrawal_threshold: 25000.0, include_keywords: ['Deposit', 'Withdraw'], monitoring_source: 'REAL_ONLY' }, trigger_action: 'alert', triggered_count: 2 }
     ],
 
     // 告警记录（10种告警类型各含模拟数据）

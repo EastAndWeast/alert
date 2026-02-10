@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const btn = loginForm.querySelector('button');
 
         if (!username || !password) {
-            showError('请输入用户名和密码');
+            showError('请输入邮箱和密码');
             return;
         }
 
@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 window.location.href = 'index.html';
             } else {
-                showError('用户名或密码错误');
+                showError('邮箱或密码不正确');
                 resetBtn();
             }
         }, 600);

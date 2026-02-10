@@ -51,7 +51,6 @@ var UsersModule = {
                             <thead>\
                                 <tr>\
                                     <th>' + I18n.t('user_id_header') + '</th>\
-                                    <th>' + I18n.t('username_header') + '</th>\
                                     <th>' + I18n.t('display_name_header') + '</th>\
                                     <th>' + I18n.t('email_header') + '</th>\
                                     <th>' + I18n.t('role_header') + '</th>\
@@ -155,7 +154,6 @@ var UsersModule = {
             return '\
                 <tr>\
                     <td><code>' + u.user_id + '</code></td>\
-                    <td>' + u.username + '</td>\
                     <td><strong>' + u.display_name + '</strong></td>\
                     <td>' + u.email + '</td>\
                     <td><span class="badge badge-' + roleInfo.color + '">' + I18n.t(u.role) + '</span></td>\
@@ -193,10 +191,6 @@ var UsersModule = {
         });
 
         App.showModal('添加用户', '\
-            <div class="form-group">\
-                <label class="form-label">用户名 <span style="color: var(--danger);">*</span></label>\
-                <input type="text" class="form-input" id="addUsername" placeholder="输入用户名">\
-            </div>\
             <div class="form-group">\
                 <label class="form-label">显示名称 <span style="color: var(--danger);">*</span></label>\
                 <input type="text" class="form-input" id="addDisplayName" placeholder="输入显示名称">\
@@ -270,9 +264,9 @@ var UsersModule = {
     },
 
     saveNewUser: function () {
-        var username = document.getElementById('addUsername').value.trim();
         var displayName = document.getElementById('addDisplayName').value.trim();
         var email = document.getElementById('addEmail').value.trim();
+        var username = email; // 默认用户名等于邮箱
         var password = document.getElementById('addPassword').value;
         var passwordConfirm = document.getElementById('addPasswordConfirm').value;
         var role = document.getElementById('addRole').value;
@@ -287,10 +281,6 @@ var UsersModule = {
         });
 
         // 验证
-        if (!username) {
-            App.showToast('error', '请输入用户名');
-            return;
-        }
         if (!displayName) {
             App.showToast('error', '请输入显示名称');
             return;
@@ -316,10 +306,10 @@ var UsersModule = {
             return;
         }
 
-        // 检查用户名是否已存在
-        var existingUser = MockData.users.find(function (u) { return u.username === username; });
+        // 检查邮箱是否已存在
+        var existingUser = MockData.users.find(function (u) { return u.email === email; });
         if (existingUser) {
-            App.showToast('error', '用户名已存在');
+            App.showToast('error', '该邮箱已注册');
             return;
         }
 
@@ -384,10 +374,6 @@ var UsersModule = {
         App.showModal('编辑用户 - ' + u.display_name, '\
             <input type="hidden" id="editUserId" value="' + u.user_id + '">\
             <div class="form-group">\
-                <label class="form-label">用户名 <span style="color: var(--danger);">*</span></label>\
-                <input type="text" class="form-input" id="editUsername" value="' + u.username + '">\
-            </div>\
-            <div class="form-group">\
                 <label class="form-label">显示名称 <span style="color: var(--danger);">*</span></label>\
                 <input type="text" class="form-input" id="editDisplayName" value="' + u.display_name + '">\
             </div>\
@@ -430,9 +416,9 @@ var UsersModule = {
 
     saveEditUser: function () {
         var userId = document.getElementById('editUserId').value;
-        var username = document.getElementById('editUsername').value.trim();
         var displayName = document.getElementById('editDisplayName').value.trim();
         var email = document.getElementById('editEmail').value.trim();
+        var username = email; // 默认用户名等于邮箱
         var password = document.getElementById('editPassword').value;
         var role = document.getElementById('editRole').value;
         var companyId = document.getElementById('editCompany').value || null;
@@ -467,12 +453,12 @@ var UsersModule = {
             return;
         }
 
-        // 检查用户名是否已被其他用户使用
+        // 检查邮箱是否已被其他用户使用
         var existingUser = MockData.users.find(function (u) {
-            return u.username === username && u.user_id !== userId;
+            return u.email === email && u.user_id !== userId;
         });
         if (existingUser) {
-            App.showToast('error', '用户名已被使用');
+            App.showToast('error', '该邮箱已被使用');
             return;
         }
 

@@ -404,10 +404,8 @@ const RulesModule = {
 
         App.showModal(I18n.t('add') + ' ' + I18n.t(ruleType) + ' ' + I18n.t('rule'), html);
         document.getElementById('modalConfirm').onclick = function () { RulesModule.saveRule(); };
-        if (ruleType === 'scalping') {
-            this.bindScalpingPreviewEvents();
-            this.updateScalpingPreview();
-        }
+        this.bindRulePreviewEvents(ruleType);
+        this.updateRulePreview(ruleType);
     },
 
     showEditRuleModal(ruleId) {
@@ -427,15 +425,24 @@ const RulesModule = {
 
         App.showModal(I18n.t('edit') + ' ' + I18n.t(rule.rule_type) + ' ' + I18n.t('rule'), html);
         document.getElementById('modalConfirm').onclick = function () { RulesModule.saveRule(); };
-        if (rule.rule_type === 'scalping') {
-            this.bindScalpingPreviewEvents();
-            this.updateScalpingPreview();
-        }
+        this.bindRulePreviewEvents(rule.rule_type);
+        this.updateRulePreview(rule.rule_type);
     },
 
     renderRuleForm(ruleType, rule, dataSourceHtml) {
         var p = rule ? rule.parameters : null;
         var html = '';
+
+        // 所有规则统一增加预览区域（除了特定逻辑的预览）
+        var previewId = ruleType + '-preview';
+        var previewTextId = ruleType + '-preview-text';
+        var previewNoteId = ruleType + '-preview-note';
+
+        html += '<div id="' + previewId + '" class="rule-preview" style="margin-top: 0; margin-bottom: 20px;">';
+        html += '  <div class="rule-preview-title">📋 ' + I18n.t('rule_preview_title') + '</div>';
+        html += '  <div class="rule-preview-text" id="' + previewTextId + '"></div>';
+        html += '  <div class="rule-preview-note" id="' + previewNoteId + '"></div>';
+        html += '</div>';
 
         switch (ruleType) {
             case 'large_trade_lots':
@@ -515,13 +522,6 @@ const RulesModule = {
 
 
             case 'scalping':
-                // 自然语言预览区域（移至顶部）
-                html += '<div id="scalping-preview" class="rule-preview" style="margin-top: 0; margin-bottom: 20px;">';
-                html += '  <div class="rule-preview-title">📋 ' + I18n.t('rule_preview_title') + '</div>';
-                html += '  <div class="rule-preview-text" id="scalping-preview-text"></div>';
-                html += '  <div class="rule-preview-note" id="scalping-preview-note"></div>';
-                html += '</div>';
-
                 html += '<div class="rule-form-split">';
                 // 左侧：参数设置
                 html += '  <div class="rule-sidebar">';
@@ -988,75 +988,190 @@ const RulesModule = {
         }
     },
 
-    // ==================== Scalping 自然语言预览 ====================
+    // ==================== 规则自然语言实时预览 ====================
 
-    updateScalpingPreview() {
-        var previewText = document.getElementById('scalping-preview-text');
-        var previewNote = document.getElementById('scalping-preview-note');
-        if (!previewText) return;
-
+    updateRulePreview(ruleType) {
+        var previewText = document.getElementById(ruleType + '-preview-text');
+        var previewNote = document.getElementById(ruleType + '-preview-note');
         var form = document.getElementById('ruleForm');
-        if (!form) return;
+        if (!previewText || !form) return;
 
-        var duration = form.querySelector('[name="duration_threshold"]').value || 180;
-        var lotMin = form.querySelector('[name="lot_min"]').value || 0.1;
-        var usdMin = form.querySelector('[name="usd_value_min"]').value || 10000;
-        var profitMin = form.querySelector('[name="profit_usd_min"]').value || 200;
-        var symbolHidden = form.querySelector('[name="symbol_filter"]');
-        var symbols = symbolHidden && symbolHidden.value ? symbolHidden.value.split(',').filter(function (s) { return s.trim(); }) : [];
-
-        var AND = I18n.t('rule_preview_and');
         var isChinese = I18n.currentLang === 'zh';
-        var triggerAction = isChinese ? '平仓后（含部分平仓），' : 'Upon closing (incl. partial close), ';
+        var html = '';
+        var note = '';
 
-        // 构建条件片段
-        var parts = [];
-        parts.push('<span class="preview-keyword">' + I18n.t('rule_preview_duration').replace('%s', '<span class="preview-value">' + duration + '</span>') + '</span>');
-        parts.push('<span class="preview-keyword">' + I18n.t('rule_preview_lots').replace('%s', '<span class="preview-value">' + lotMin + '</span>') + '</span>');
-        parts.push('<span class="preview-keyword">' + I18n.t('rule_preview_usd').replace('%s', '<span class="preview-value">' + Utils.formatNumber(parseFloat(usdMin)) + '</span>') + '</span>');
-        parts.push('<span class="preview-keyword">' + I18n.t('rule_preview_profit').replace('%s', '<span class="preview-value">' + Utils.formatNumber(parseFloat(profitMin)) + '</span>') + '</span>');
+        // 通用：产品选择处理器
+        var getSymbolsText = function (name) {
+            var input = form.querySelector('[name="' + name + '"]');
+            var val = input ? input.value : '';
+            var list = val ? val.split(',').filter(function (s) { return s.trim(); }) : [];
+            if (list.length > 0) {
+                return '<span class="preview-symbol">' + list.join(', ') + '</span>';
+            }
+            return '<span class="preview-symbol">' + I18n.t('rule_preview_all_symbols') + '</span>';
+        };
 
-        // 品种部分
-        var symbolText;
-        if (symbols.length > 0) {
-            symbolText = '<span class="preview-symbol">' + symbols.join(', ') + '</span>';
-        } else {
-            symbolText = '<span class="preview-symbol">' + I18n.t('rule_preview_all_symbols') + '</span>';
+        // 通用：值包装器
+        var wrapVal = function (val) {
+            return '<span class="preview-value">' + val + '</span>';
+        };
+
+        switch (ruleType) {
+            case 'large_trade_lots':
+                var lots = form.querySelector('[name="lot_threshold"]').value || 5.0;
+                html = I18n.t('rule_preview_large_lots')
+                    .replace('%s', wrapVal(lots))
+                    .replace('%s', getSymbolsText('symbol_filter'));
+                break;
+
+            case 'large_trade_usd':
+                var usd = form.querySelector('[name="usd_value_threshold"]').value || 50000;
+                html = I18n.t('rule_preview_large_usd')
+                    .replace('%s', wrapVal(Utils.formatNumber(usd)))
+                    .replace('%s', getSymbolsText('symbol_filter'));
+                break;
+
+            case 'liquidity_trade':
+                var l_window = form.querySelector('[name="time_window"]').value || 60;
+                var l_count = form.querySelector('[name="min_order_count"]').value || 2;
+                var l_totalLots = form.querySelector('[name="total_lot_threshold"]').value || 10;
+                var l_logic = form.querySelector('[name="aggregation_logic"]').value === 'BY_CATEGORY' ? I18n.t('by_category') : I18n.t('by_symbol');
+                html = I18n.t('rule_preview_liquidity')
+                    .replace('%s', wrapVal(l_window))
+                    .replace('%s', wrapVal(l_count))
+                    .replace('%s', wrapVal(l_totalLots))
+                    .replace('%s', getSymbolsText('monitoring_scope'))
+                    .replace('%s', wrapVal(l_logic));
+                break;
+
+            case 'scalping':
+                var s_duration = form.querySelector('[name="duration_threshold"]').value || 180;
+                var s_lotMin = form.querySelector('[name="lot_min"]').value || 0.1;
+                var s_usdMin = form.querySelector('[name="usd_value_min"]').value || 10000;
+                var s_profitMin = form.querySelector('[name="profit_usd_min"]').value || 200;
+                var triggerAction = isChinese ? '平仓后（含部分平仓），' : 'Upon closing (incl. partial close), ';
+
+                var parts = [];
+                parts.push('<span class="preview-keyword">' + I18n.t('rule_preview_duration').replace('%s', wrapVal(s_duration)) + '</span>');
+                parts.push('<span class="preview-keyword">' + I18n.t('rule_preview_lots').replace('%s', wrapVal(s_lotMin)) + '</span>');
+                parts.push('<span class="preview-keyword">' + I18n.t('rule_preview_usd').replace('%s', wrapVal(Utils.formatNumber(parseFloat(s_usdMin)))) + '</span>');
+                parts.push('<span class="preview-keyword">' + I18n.t('rule_preview_profit').replace('%s', wrapVal(Utils.formatNumber(parseFloat(s_profitMin)))) + '</span>');
+
+                html = triggerAction + parts.join(I18n.t('rule_preview_and')) + I18n.t('rule_preview_symbols').replace('%s', getSymbolsText('symbol_filter'));
+                note = I18n.t('rule_preview_profit_only');
+                break;
+
+            case 'exposure_alert':
+                var e_currency = form.querySelector('[name="target_currency"]').value || 'USD';
+                var e_threshold = form.querySelector('[name="exposure_threshold"]').value || 10000000;
+                var e_interval = form.querySelector('[name="time_interval"]').value || 600;
+                html = I18n.t('rule_preview_exposure')
+                    .replace('%s', wrapVal(e_currency))
+                    .replace('%s', wrapVal(Utils.formatNumber(e_threshold)))
+                    .replace('%s', wrapVal(e_interval));
+                break;
+
+            case 'pricing_volatility':
+                var v_stopDur = form.querySelector('[name="stop_pricing_duration"]').value || 30;
+                var v_threshold = form.querySelector('[name="volatility_threshold"]').value || 100;
+                var v_modeSelect = form.querySelector('[name="volatility_mode"]');
+                var v_modeText = v_modeSelect ? (v_modeSelect.value === 'POINTS' ? 'Points' : '%') : 'Points';
+                html = I18n.t('rule_preview_volatility')
+                    .replace('%s', getSymbolsText('pricing_scope'))
+                    .replace('%s', wrapVal(v_stopDur))
+                    .replace('%s', wrapVal(v_threshold))
+                    .replace('%s', wrapVal(v_modeText));
+                break;
+
+            case 'nop_limit':
+                var n_nopVal = form.querySelector('[name="nop_threshold"]').value || 5000;
+                var n_nopFreq = form.querySelector('[name="calculation_frequency"]').value || 5;
+                var n_nopCool = form.querySelector('[name="alert_cooldown"]').value || 300;
+                var n_nopPlatform = form.querySelector('[name="platform_type"]').value || 'MT4';
+                html = I18n.t('rule_preview_nop')
+                    .replace('%s', getSymbolsText('symbol_filter'))
+                    .replace('%s', wrapVal(Utils.formatNumber(n_nopVal)))
+                    .replace('%s', wrapVal(n_nopPlatform))
+                    .replace('%s', wrapVal(n_nopFreq))
+                    .replace('%s', wrapVal(n_nopCool));
+                break;
+
+            case 'watch_list':
+                var w_accounts = form.querySelector('[name="watched_accounts"]').value || '---';
+                var w_acts = [];
+                var w_open = form.querySelector('[name="action_open"]');
+                var w_pending = form.querySelector('[name="action_pending"]');
+                if (w_open && w_open.checked) w_acts.push(I18n.t('open_trade'));
+                if (w_pending && w_pending.checked) w_acts.push(I18n.t('pending_order'));
+                var w_actionText = w_acts.length > 0 ? w_acts.join('/') : '---';
+                var w_watchLot = form.querySelector('[name="lots_min_limit"]').value || 0.01;
+                html = I18n.t('rule_preview_watch')
+                    .replace('%s', wrapVal(w_accounts))
+                    .replace('%s', wrapVal(w_actionText))
+                    .replace('%s', wrapVal(w_watchLot));
+                break;
+
+            case 'reverse_positions':
+                var r_revInt = form.querySelector('[name="max_reverse_interval"]').value || 5;
+                var r_revLot = form.querySelector('[name="min_reverse_lot"]').value || 1;
+                var r_revUsd = form.querySelector('[name="min_reverse_value_usd"]').value || 10000;
+                var r_revCool = form.querySelector('[name="cooldown_period"]').value || 60;
+                html = I18n.t('rule_preview_reverse')
+                    .replace('%s', wrapVal(r_revInt))
+                    .replace('%s', wrapVal(r_revLot))
+                    .replace('%s', wrapVal(Utils.formatNumber(r_revUsd)))
+                    .replace('%s', wrapVal(r_revCool));
+                break;
+
+            case 'deposit_withdrawal':
+                var d_depT = form.querySelector('[name="deposit_threshold"]').value || 10000;
+                var d_witT = form.querySelector('[name="withdrawal_threshold"]').value || 5000;
+                var d_keys = form.querySelector('[name="include_keywords"]').value || '---';
+                html = I18n.t('rule_preview_deposit')
+                    .replace('%s', wrapVal(Utils.formatNumber(d_depT)))
+                    .replace('%s', wrapVal(Utils.formatNumber(d_witT)))
+                    .replace('%s', wrapVal(d_keys));
+                break;
         }
 
-        var html = triggerAction + parts.join(AND);
-        html += I18n.t('rule_preview_symbols').replace('%s', symbolText);
-        html += isChinese ? '，触发告警。' : ', trigger alert.';
-
+        html += isChinese ? '触发告警。' : ' trigger alert.';
         previewText.innerHTML = html;
-
-        // 盈亏备注 (固定为仅监控盈利交易)
-        previewNote.textContent = I18n.t('rule_preview_profit_only');
+        if (previewNote) previewNote.textContent = note || '';
     },
 
-    bindScalpingPreviewEvents() {
+    bindRulePreviewEvents(ruleType) {
         var self = this;
         var form = document.getElementById('ruleForm');
         if (!form) return;
 
-        var inputs = form.querySelectorAll('input[name="duration_threshold"], input[name="lot_min"], input[name="usd_value_min"], input[name="profit_usd_min"]');
-        for (var i = 0; i < inputs.length; i++) {
-            inputs[i].addEventListener('input', function () { self.updateScalpingPreview(); });
+        // 监听所有 input 变化
+        var textInputs = form.querySelectorAll('input[type="number"], input[type="text"]');
+        for (var i = 0; i < textInputs.length; i++) {
+            textInputs[i].addEventListener('input', function () { self.updateRulePreview(ruleType); });
         }
 
-        // 监控 symbol_filter 隐藏域变化（通过 MutationObserver）
-        var hiddenInput = form.querySelector('input[name="symbol_filter"]');
-        if (hiddenInput) {
-            var observer = new MutationObserver(function () { self.updateScalpingPreview(); });
-            observer.observe(hiddenInput, { attributes: true, attributeFilter: ['value'] });
-            // 备用：轮询检测 value 变化（因为 value 属性变化不触发 MutationObserver）
-            var lastVal = hiddenInput.value;
-            self._symbolPollTimer = setInterval(function () {
-                if (hiddenInput.value !== lastVal) {
-                    lastVal = hiddenInput.value;
-                    self.updateScalpingPreview();
-                }
-            }, 300);
+        // 监听所有 checkbox 和 select 变化
+        var otherInputs = form.querySelectorAll('input[type="checkbox"], select');
+        for (var i = 0; i < otherInputs.length; i++) {
+            otherInputs[i].addEventListener('change', function () { self.updateRulePreview(ruleType); });
+        }
+
+        // 监控所有 tag-input 隐藏域变化
+        var hiddenInputs = form.querySelectorAll('input[type="hidden"]');
+        var monitorNames = ['symbol_filter', 'monitoring_scope', 'pricing_scope', 'nop_scope'];
+        for (var i = 0; i < hiddenInputs.length; i++) {
+            var hiddenInput = hiddenInputs[i];
+            if (monitorNames.indexOf(hiddenInput.name) >= 0) {
+                (function (hi) {
+                    var lastVal = hi.value;
+                    setInterval(function () {
+                        if (hi.value !== lastVal) {
+                            lastVal = hi.value;
+                            self.updateRulePreview(ruleType);
+                        }
+                    }, 300);
+                })(hiddenInput);
+            }
         }
     }
 };

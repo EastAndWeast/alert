@@ -155,7 +155,7 @@ const RulesModule = {
                 html += '<div class="param-item"><strong>' + I18n.t('max_reverse_interval_label') + '：</strong>' + p.max_reverse_interval + ' ' + I18n.t('unit_seconds') + '</div>';
                 html += '<div class="param-item"><strong>' + I18n.t('min_reverse_lot_label') + '：</strong>' + p.min_reverse_lot + ' ' + I18n.t('unit_lots') + '</div>';
                 html += '<div class="param-item"><strong>' + I18n.t('min_reverse_value_usd_label') + '：</strong>$' + Utils.formatNumber(p.min_reverse_value_usd) + '</div>';
-                html += '<div class="param-item"><strong>' + I18n.t('cooldown_period_label') + '：</strong>' + p.cooldown_period + ' ' + I18n.t('unit_seconds') + '</div>';
+                html += '<div class="param-item"><strong>' + I18n.t('monitor_symbols_label') + '：</strong>' + (p.symbol_filter && p.symbol_filter.length ? p.symbol_filter.join(', ') : I18n.t('all')) + '</div>';
                 break;
             case 'deposit_withdrawal':
                 html += '<div class="param-item"><strong>' + I18n.t('deposit_threshold_label') + '：</strong>$' + Utils.formatNumber(p.deposit_threshold) + '</div>';
@@ -628,15 +628,27 @@ const RulesModule = {
                 break;
 
             case 'reverse_positions':
-                html += '<div class="form-group"><label>' + I18n.t('max_reverse_interval_label') + ' (' + I18n.t('unit_seconds') + ')*</label>';
-                html += '<input type="number" name="max_reverse_interval" class="form-control" value="' + (p ? p.max_reverse_interval : 5) + '" required></div>';
-                html += '<div class="form-group"><label>' + I18n.t('min_reverse_lot_label') + '</label>';
-                html += '<input type="number" name="min_reverse_lot" class="form-control" step="0.1" value="' + (p ? p.min_reverse_lot : 1) + '"></div>';
-                html += '<div class="form-group"><label>' + I18n.t('min_reverse_value_usd_label') + '</label>';
-                html += '<input type="number" name="min_reverse_value_usd" class="form-control" value="' + (p ? p.min_reverse_value_usd : 10000) + '"></div>';
-                html += '<div class="form-group"><label>' + I18n.t('cooldown_period_label') + ' (' + I18n.t('unit_seconds') + ')</label>';
-                html += '<input type="number" name="cooldown_period" class="form-control" value="' + (p ? p.cooldown_period : 60) + '"></div>';
-                html += '<div class="rule-tip">' + I18n.t('rule_tip_reverse_positions') + '</div>';
+                html += '<div class="rule-form-split">';
+                // 左侧：常规参数
+                html += '  <div class="rule-sidebar">';
+                if (dataSourceHtml) html += dataSourceHtml;
+                html += '    <div class="form-group"><label>' + I18n.t('max_reverse_interval_label') + ' (' + I18n.t('unit_seconds') + ')*</label>';
+                html += '      <input type="number" name="max_reverse_interval" class="form-control" value="' + (p ? p.max_reverse_interval : 5) + '" required></div>';
+                html += '    <div class="form-group"><label>' + I18n.t('min_reverse_lot_label') + '</label>';
+                html += '      <input type="number" name="min_reverse_lot" class="form-control" step="0.1" value="' + (p ? p.min_reverse_lot : 1) + '"></div>';
+                html += '    <div class="form-group"><label>' + I18n.t('min_reverse_value_usd_label') + '</label>';
+                html += '      <input type="number" name="min_reverse_value_usd" class="form-control" value="' + (p ? p.min_reverse_value_usd : 10000) + '"></div>';
+                html += '    <div class="rule-tip">' + I18n.t('rule_tip_reverse_positions') + '</div>';
+                html += '  </div>';
+
+                // 右侧：产品选择
+                html += '  <div class="rule-main">';
+                html += '    <div class="form-group" style="margin-bottom:0;"><label>' + I18n.t('monitor_symbols_label') + '</label>';
+                html += '      <div class="tag-input-panel-info">' + I18n.t('tag_input_help') + '</div>';
+                html += this.renderTagInput('symbol_filter', p ? p.symbol_filter : []);
+                html += '    </div>';
+                html += '  </div>';
+                html += '</div>';
                 break;
 
             case 'deposit_withdrawal':
@@ -770,8 +782,8 @@ const RulesModule = {
                 p.max_reverse_interval = parseInt(formData.get('max_reverse_interval'));
                 p.min_reverse_lot = parseFloat(formData.get('min_reverse_lot')) || 1;
                 p.min_reverse_value_usd = parseFloat(formData.get('min_reverse_value_usd')) || 10000;
+                p.symbol_filter = formData.get('symbol_filter') ? formData.get('symbol_filter').split(',').map(function (s) { return s.trim(); }).filter(function (s) { return s; }) : [];
                 p.symbol_match_level = 'EXACT_MATCH';
-                p.cooldown_period = parseInt(formData.get('cooldown_period')) || 60;
                 break;
 
             case 'deposit_withdrawal':
@@ -1115,12 +1127,11 @@ const RulesModule = {
                 var r_revInt = form.querySelector('[name="max_reverse_interval"]').value || 5;
                 var r_revLot = form.querySelector('[name="min_reverse_lot"]').value || 1;
                 var r_revUsd = form.querySelector('[name="min_reverse_value_usd"]').value || 10000;
-                var r_revCool = form.querySelector('[name="cooldown_period"]').value || 60;
                 html = I18n.t('rule_preview_reverse')
                     .replace('%s', wrapVal(r_revInt))
                     .replace('%s', wrapVal(r_revLot))
                     .replace('%s', wrapVal(Utils.formatNumber(r_revUsd)))
-                    .replace('%s', wrapVal(r_revCool));
+                    .replace('%s', getSymbolsText('symbol_filter'));
                 break;
 
             case 'deposit_withdrawal':

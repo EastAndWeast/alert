@@ -231,3 +231,53 @@ Step Id: 520
 </USER_REQUEST>
 System.Collections.ArrayList+ArrayListEnumeratorSimple
 System.Collections.ArrayList+ArrayListEnumeratorSimple
+
+Step Id: 97
+<USER_REQUEST>
+1.把当前规则含义放到最上面，方便用户看到
+
+另外几个问题
+1.最小手数：  是开仓手数，还是平仓手数
+2.最小USD直接：是开仓还是平仓
+3.最小活力（USD）是开仓还是平仓
+</USER_REQUEST>
+
+
+Step Id: 152
+<USER_REQUEST>
+这里有一个问题，  因为MT5和MT4是支持部分平仓。这种情况如何处理。
+</USER_REQUEST>
+
+
+Step Id: 182
+<USER_REQUEST>
+关于Scalping的问题，我还要跟你讨论一下。
+如果规则设置为2手
+客户开仓5手  XAUUSD， 然后部分平台  1手，  这种情况如何处理。
+</USER_REQUEST>
+
+
+Step Id: 198
+<USER_REQUEST>
+如果是这样
+最小手数
+最小USD价值
+最小获得USD
+
+是不是都是指平仓以后的。
+
+
+而不是客户提的开仓
+</USER_REQUEST>
+
+
+Step Id: 204
+<USER_REQUEST>
+好的，那么这三个，需要加入 平仓的定语，让操作的人看的更明白。
+</USER_REQUEST>
+
+
+Step Id: 286
+<USER_REQUEST>
+开始执行
+</USER_REQUEST>

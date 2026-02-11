@@ -404,6 +404,10 @@ const RulesModule = {
 
         App.showModal(I18n.t('add') + ' ' + I18n.t(ruleType) + ' ' + I18n.t('rule'), html);
         document.getElementById('modalConfirm').onclick = function () { RulesModule.saveRule(); };
+        if (ruleType === 'scalping') {
+            this.bindScalpingPreviewEvents();
+            this.updateScalpingPreview();
+        }
     },
 
     showEditRuleModal(ruleId) {
@@ -423,6 +427,10 @@ const RulesModule = {
 
         App.showModal(I18n.t('edit') + ' ' + I18n.t(rule.rule_type) + ' ' + I18n.t('rule'), html);
         document.getElementById('modalConfirm').onclick = function () { RulesModule.saveRule(); };
+        if (rule.rule_type === 'scalping') {
+            this.bindScalpingPreviewEvents();
+            this.updateScalpingPreview();
+        }
     },
 
     renderRuleForm(ruleType, rule, dataSourceHtml) {
@@ -507,6 +515,13 @@ const RulesModule = {
 
 
             case 'scalping':
+                // 自然语言预览区域（移至顶部）
+                html += '<div id="scalping-preview" class="rule-preview" style="margin-top: 0; margin-bottom: 20px;">';
+                html += '  <div class="rule-preview-title">📋 ' + I18n.t('rule_preview_title') + '</div>';
+                html += '  <div class="rule-preview-text" id="scalping-preview-text"></div>';
+                html += '  <div class="rule-preview-note" id="scalping-preview-note"></div>';
+                html += '</div>';
+
                 html += '<div class="rule-form-split">';
                 // 左侧：参数设置
                 html += '  <div class="rule-sidebar">';
@@ -519,7 +534,6 @@ const RulesModule = {
                 html += '      <input type="number" name="usd_value_min" class="form-control" value="' + (p ? p.usd_value_min : 10000) + '"></div>';
                 html += '    <div class="form-group"><label>' + I18n.t('profit_usd_min_label') + '</label>';
                 html += '      <input type="number" name="profit_usd_min" class="form-control" value="' + (p ? p.profit_usd_min : 200) + '"></div>';
-                html += '    <div class="form-group"><label><input type="checkbox" name="include_loss" ' + (p && p.include_loss ? 'checked' : '') + '> ' + I18n.t('include_loss_label') + '</label></div>';
                 html += '    <div class="rule-tip">' + I18n.t('rule_tip_scalping') + '</div>';
                 html += '  </div>';
 
@@ -966,6 +980,83 @@ const RulesModule = {
         if (index > -1) {
             currentValues.splice(index, 1);
             hiddenInput.value = currentValues.join(',');
+        }
+
+        // 更新预览（如果在 scalping 弹窗中）
+        if (document.getElementById('scalping-preview')) {
+            this.updateScalpingPreview();
+        }
+    },
+
+    // ==================== Scalping 自然语言预览 ====================
+
+    updateScalpingPreview() {
+        var previewText = document.getElementById('scalping-preview-text');
+        var previewNote = document.getElementById('scalping-preview-note');
+        if (!previewText) return;
+
+        var form = document.getElementById('ruleForm');
+        if (!form) return;
+
+        var duration = form.querySelector('[name="duration_threshold"]').value || 180;
+        var lotMin = form.querySelector('[name="lot_min"]').value || 0.1;
+        var usdMin = form.querySelector('[name="usd_value_min"]').value || 10000;
+        var profitMin = form.querySelector('[name="profit_usd_min"]').value || 200;
+        var symbolHidden = form.querySelector('[name="symbol_filter"]');
+        var symbols = symbolHidden && symbolHidden.value ? symbolHidden.value.split(',').filter(function (s) { return s.trim(); }) : [];
+
+        var AND = I18n.t('rule_preview_and');
+        var isChinese = I18n.currentLang === 'zh';
+        var triggerAction = isChinese ? '平仓后（含部分平仓），' : 'Upon closing (incl. partial close), ';
+
+        // 构建条件片段
+        var parts = [];
+        parts.push('<span class="preview-keyword">' + I18n.t('rule_preview_duration').replace('%s', '<span class="preview-value">' + duration + '</span>') + '</span>');
+        parts.push('<span class="preview-keyword">' + I18n.t('rule_preview_lots').replace('%s', '<span class="preview-value">' + lotMin + '</span>') + '</span>');
+        parts.push('<span class="preview-keyword">' + I18n.t('rule_preview_usd').replace('%s', '<span class="preview-value">' + Utils.formatNumber(parseFloat(usdMin)) + '</span>') + '</span>');
+        parts.push('<span class="preview-keyword">' + I18n.t('rule_preview_profit').replace('%s', '<span class="preview-value">' + Utils.formatNumber(parseFloat(profitMin)) + '</span>') + '</span>');
+
+        // 品种部分
+        var symbolText;
+        if (symbols.length > 0) {
+            symbolText = '<span class="preview-symbol">' + symbols.join(', ') + '</span>';
+        } else {
+            symbolText = '<span class="preview-symbol">' + I18n.t('rule_preview_all_symbols') + '</span>';
+        }
+
+        var html = triggerAction + parts.join(AND);
+        html += I18n.t('rule_preview_symbols').replace('%s', symbolText);
+        html += isChinese ? '，触发告警。' : ', trigger alert.';
+
+        previewText.innerHTML = html;
+
+        // 盈亏备注 (固定为仅监控盈利交易)
+        previewNote.textContent = I18n.t('rule_preview_profit_only');
+    },
+
+    bindScalpingPreviewEvents() {
+        var self = this;
+        var form = document.getElementById('ruleForm');
+        if (!form) return;
+
+        var inputs = form.querySelectorAll('input[name="duration_threshold"], input[name="lot_min"], input[name="usd_value_min"], input[name="profit_usd_min"]');
+        for (var i = 0; i < inputs.length; i++) {
+            inputs[i].addEventListener('input', function () { self.updateScalpingPreview(); });
+        }
+
+        // 监控 symbol_filter 隐藏域变化（通过 MutationObserver）
+        var hiddenInput = form.querySelector('input[name="symbol_filter"]');
+        if (hiddenInput) {
+            var observer = new MutationObserver(function () { self.updateScalpingPreview(); });
+            observer.observe(hiddenInput, { attributes: true, attributeFilter: ['value'] });
+            // 备用：轮询检测 value 变化（因为 value 属性变化不触发 MutationObserver）
+            var lastVal = hiddenInput.value;
+            self._symbolPollTimer = setInterval(function () {
+                if (hiddenInput.value !== lastVal) {
+                    lastVal = hiddenInput.value;
+                    self.updateScalpingPreview();
+                }
+            }, 300);
         }
     }
 };

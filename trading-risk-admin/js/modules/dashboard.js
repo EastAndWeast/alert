@@ -162,7 +162,8 @@ var DashboardModule = {
                         I18n.t('liquidity_trade'),
                         I18n.t('scalping'),
                         I18n.t('exposure_alert'),
-                        I18n.t('pricing_volatility'),
+                        I18n.t('pricing'),
+                        I18n.t('volatility'),
                         I18n.t('nop_limit'),
                         I18n.t('watch_list'),
                         I18n.t('reverse_positions'),
@@ -175,13 +176,14 @@ var DashboardModule = {
                             alertsByType.liquidity_trade || 0,
                             alertsByType.scalping || 0,
                             alertsByType.exposure_alert || 0,
-                            alertsByType.pricing_volatility || 0,
+                            alertsByType.pricing || 0,
+                            alertsByType.volatility || 0,
                             alertsByType.nop_limit || 0,
                             alertsByType.watch_list || 0,
                             alertsByType.reverse_positions || 0,
                             alertsByType.deposit_withdrawal || 0
                         ],
-                        backgroundColor: ['#ef4444', '#f97316', '#3b82f6', '#f59e0b', '#8b5cf6', '#06b6d4', '#6366f1', '#ec4899', '#14b8a6', '#10b981'],
+                        backgroundColor: ['#ef4444', '#f97316', '#3b82f6', '#f59e0b', '#8b5cf6', '#06b6d4', '#6366f1', '#6c757d', '#ec4899', '#14b8a6', '#10b981'],
                         borderWidth: 0
                     }]
                 },

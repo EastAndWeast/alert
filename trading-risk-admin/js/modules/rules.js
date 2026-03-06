@@ -8,7 +8,8 @@ const RulesModule = {
         'liquidity_trade': { name: 'Liquidity Trade', icon: '🌊', color: 'info' },
         'scalping': { name: 'Scalping', icon: '⚡', color: 'warning' },
         'exposure_alert': { name: 'Exposure Alert', icon: '📊', color: 'danger' },
-        'pricing_volatility': { name: 'Pricing & Volatility', icon: '📈', color: 'secondary' },
+        'pricing': { name: 'Pricing', icon: '⏱️', color: 'secondary' },
+        'volatility': { name: 'Volatility', icon: '📈', color: 'warning' },
         'nop_limit': { name: 'NOP Limit', icon: '📐', color: 'dark' },
         'watch_list': { name: 'Watch List', icon: '👁️', color: 'primary' },
         'reverse_positions': { name: 'Reverse Positions', icon: '🔀', color: 'warning' },
@@ -129,11 +130,19 @@ const RulesModule = {
                 html += '<div class="param-item"><strong>' + I18n.t('time_interval_label') + '：</strong>' + p.time_interval + ' ' + I18n.t('unit_seconds') + '</div>';
                 html += '<div class="param-item"><strong>' + I18n.t('max_remind_count_label') + '：</strong>' + p.max_remind_count + ' ' + I18n.t('times') + '</div>';
                 break;
-            case 'pricing_volatility':
-                html += '<div class="param-item"><strong>' + I18n.t('stop_pricing_duration_label') + '：</strong>' + p.pricing.stop_pricing_duration + ' ' + I18n.t('unit_seconds') + '</div>';
-                var volatilityThreshold = p.volatility.mode === 'PERCENTAGE' ? p.volatility.threshold + '%' : p.volatility.threshold + ' ' + I18n.t('points');
-                html += '<div class="param-item"><strong>' + I18n.t('volatility_threshold_label') + '：</strong>' + volatilityThreshold + ' (' + p.volatility.mode + ')</div>';
-                html += '<div class="param-item"><strong>' + I18n.t('monitor_symbols_label') + '：</strong>' + (p.pricing.scope && p.pricing.scope.length ? p.pricing.scope.join(', ') : I18n.t('all')) + '</div>';
+            case 'pricing':
+                if (p.pricing && p.pricing.stop_pricing_duration) {
+                    html += '<div class="param-item"><strong>' + I18n.t('stop_pricing_duration_label') + '：</strong>' + p.pricing.stop_pricing_duration + ' ' + I18n.t('unit_seconds') + '</div>';
+                }
+                if (p.pricing && p.pricing.max_spread) {
+                    html += '<div class="param-item"><strong>' + I18n.t('max_spread_label') + '：</strong>' + p.pricing.max_spread + ' Points</div>';
+                }
+                html += '<div class="param-item"><strong>' + I18n.t('monitor_symbols_label') + '：</strong>' + (p.pricing && p.pricing.scope && p.pricing.scope.length ? p.pricing.scope.join(', ') : I18n.t('all')) + '</div>';
+                break;
+            case 'volatility':
+                html += '<div class="param-item"><strong>' + I18n.t('time_window_label') + '：</strong>' + (p.volatility ? p.volatility.time_window : 'M1') + '</div>';
+                html += '<div class="param-item"><strong>' + I18n.t('max_fluctuation_label') + '：</strong>' + (p.volatility ? p.volatility.threshold_value : 500) + ' ' + (p.volatility && p.volatility.mode === 'PERCENTAGE' ? '%' : 'Points') + '</div>';
+                html += '<div class="param-item"><strong>' + I18n.t('monitor_symbols_label') + '：</strong>' + (p.volatility && p.volatility.scope && p.volatility.scope.length ? p.volatility.scope.join(', ') : I18n.t('all')) + '</div>';
                 break;
             case 'nop_limit':
                 var platformCoeff = p.platform_type === 'MT5' ? '10000' : '100';
@@ -256,14 +265,18 @@ const RulesModule = {
             return parts.join(' | ');
         }
 
-        // 6. Pricing & Volatility
-        if (ruleType === 'pricing_volatility' || ruleType.indexOf('pricing') >= 0) {
-            if (d.alert_subtype === 'PRICING') {
+        // 6. Pricing 
+        if (ruleType === 'pricing') {
+            if (d.alert_subtype === 'PRICING' || d.alert_subtype === 'STALE_PRICE') {
                 return v + 's | ' + I18n.t('pricing_stop');
-            } else if (d.alert_subtype === 'VOLATILITY') {
-                return (d.change_points || v) + I18n.t('unit_points') + ' | ' + I18n.t('volatility');
+            } else if (d.alert_subtype === 'HIGH_SPREAD') {
+                return v + ' pts | High Spread';
             }
-            return v + 's';
+        }
+
+        // 7. Volatility
+        if (ruleType === 'volatility') {
+            return (d.change_points || v) + (String(v).indexOf('%') > 0 ? '' : ' pts') + ' (' + (d.time_window || 'M1') + ')';
         }
 
         // 7. NOP Limit
@@ -338,9 +351,14 @@ const RulesModule = {
         return this.renderRulePage('exposure_alert');
     },
 
-    // 6. Pricing & Volatility
+    // 6. Pricing
     renderPricing() {
-        return this.renderRulePage('pricing_volatility');
+        return this.renderRulePage('pricing');
+    },
+
+    // 7. Volatility
+    renderVolatility() {
+        return this.renderRulePage('volatility');
     },
 
     // 7. NOP Limit
@@ -560,27 +578,53 @@ const RulesModule = {
                 html += '<div class="rule-tip">' + I18n.t('rule_tip_exposure_alert') + '</div>';
                 break;
 
-            case 'pricing_volatility':
+            case 'pricing':
                 html += '<div class="rule-form-split">';
                 // 左侧：参数设置
                 html += '  <div class="rule-sidebar">';
                 if (dataSourceHtml) html += dataSourceHtml;
-                html += '    <div class="form-group"><label>' + I18n.t('stop_pricing_duration_label') + ' (' + I18n.t('unit_seconds') + ')*</label>';
-                html += '      <input type="number" name="stop_pricing_duration" class="form-control" value="' + (p ? p.pricing.stop_pricing_duration : 30) + '" required></div>';
-                html += '    <div class="form-group"><label>' + I18n.t('volatility_mode_label') + '</label><select name="volatility_mode" class="form-control">';
-                html += '      <option value="POINTS"' + (p && p.volatility.mode === 'POINTS' ? ' selected' : '') + '>' + I18n.t('points') + ' (Points)</option>';
-                html += '      <option value="PERCENTAGE"' + (p && p.volatility.mode === 'PERCENTAGE' ? ' selected' : '') + '>' + I18n.t('percentage') + ' (%)</option>';
-                html += '    </select></div>';
-                html += '    <div class="form-group"><label>' + I18n.t('volatility_threshold_label') + '</label>';
-                html += '      <input type="number" name="volatility_threshold" class="form-control" step="0.1" value="' + (p ? p.volatility.threshold_value : 100) + '"></div>';
-                html += '    <div class="rule-tip">' + I18n.t('rule_tip_pricing_volatility') + '</div>';
+                // Stale Price
+                html += '    <div class="form-group"><label>' + I18n.t('stop_pricing_duration_label') + ' (' + I18n.t('unit_seconds') + ')</label>';
+                html += '      <input type="number" name="stop_pricing_duration" class="form-control" value="' + (p && p.pricing && p.pricing.stop_pricing_duration ? p.pricing.stop_pricing_duration : 10) + '"></div>';
+                // Max Spread
+                html += '    <div class="form-group"><label>' + I18n.t('max_spread_label') + ' (Points)</label>';
+                html += '      <input type="number" name="max_spread" class="form-control" value="' + (p && p.pricing && p.pricing.max_spread ? p.pricing.max_spread : 150) + '"></div>';
+                html += '    <div class="rule-tip">' + I18n.t('rule_tip_pricing') + '</div>';
                 html += '  </div>';
 
                 // 右侧：产品选择
                 html += '  <div class="rule-main">';
                 html += '    <div class="form-group" style="margin-bottom:0;"><label>' + I18n.t('monitor_symbols_label') + '</label>';
                 html += '      <div class="tag-input-panel-info">' + I18n.t('tag_input_help') + '</div>';
-                html += this.renderTagInput('pricing_scope', p ? (p.pricing.scope || []) : []);
+                html += this.renderTagInput('pricing_scope', p && p.pricing && p.pricing.scope ? p.pricing.scope : []);
+                html += '    </div>';
+                html += '  </div>';
+                html += '</div>';
+                break;
+
+            case 'volatility':
+                html += '<div class="rule-form-split">';
+                // 左侧：参数设置
+                html += '  <div class="rule-sidebar">';
+                if (dataSourceHtml) html += dataSourceHtml;
+                html += '    <div class="form-group"><label>' + I18n.t('time_window_label') + '</label>';
+                html += '      <select name="time_window" class="form-control">';
+                var tw = p && p.volatility && p.volatility.time_window ? p.volatility.time_window : 'M1';
+                html += '        <option value="M1" ' + (tw === 'M1' ? 'selected' : '') + '>1 Min</option>';
+                html += '        <option value="M5" ' + (tw === 'M5' ? 'selected' : '') + '>5 Min</option>';
+                html += '        <option value="M15" ' + (tw === 'M15' ? 'selected' : '') + '>15 Min</option>';
+                html += '      </select></div>';
+                html += '    <div class="form-group"><label>' + I18n.t('max_fluctuation_label') + ' (Points/Pips)</label>';
+                html += '      <input type="number" name="threshold_value" class="form-control" value="' + (p && p.volatility && p.volatility.threshold_value ? p.volatility.threshold_value : 500) + '" required></div>';
+                html += '    <input type="hidden" name="volatility_mode" value="POINTS">';
+                html += '    <div class="rule-tip">' + I18n.t('rule_tip_volatility') + '</div>';
+                html += '  </div>';
+
+                // 右侧：产品选择
+                html += '  <div class="rule-main">';
+                html += '    <div class="form-group" style="margin-bottom:0;"><label>' + I18n.t('monitor_symbols_label') + '</label>';
+                html += '      <div class="tag-input-panel-info">' + I18n.t('tag_input_help') + '</div>';
+                html += this.renderTagInput('volatility_scope', p && p.volatility && p.volatility.scope ? p.volatility.scope : []);
                 html += '    </div>';
                 html += '  </div>';
                 html += '</div>';
@@ -747,16 +791,19 @@ const RulesModule = {
                 p.calculation_mode = 'ONLY_POSITIONS';
                 break;
 
-            case 'pricing_volatility':
+            case 'pricing':
                 p.pricing = {
-                    stop_pricing_duration: parseInt(formData.get('stop_pricing_duration')),
+                    stop_pricing_duration: formData.get('stop_pricing_duration') ? parseInt(formData.get('stop_pricing_duration')) : null,
+                    max_spread: formData.get('max_spread') ? parseInt(formData.get('max_spread')) : null,
                     scope: formData.get('pricing_scope') ? formData.get('pricing_scope').split(',').map(function (s) { return s.trim(); }).filter(function (s) { return s; }) : []
                 };
+                break;
+            case 'volatility':
                 p.volatility = {
                     mode: formData.get('volatility_mode'),
-                    threshold_value: parseFloat(formData.get('volatility_threshold')) || 100,
-                    time_window: 'M1',
-                    digits_auto_detect: true
+                    threshold_value: parseFloat(formData.get('threshold_value')),
+                    time_window: formData.get('time_window'),
+                    scope: formData.get('volatility_scope') ? formData.get('volatility_scope').split(',').map(function (s) { return s.trim(); }).filter(function (s) { return s; }) : []
                 };
                 break;
 
@@ -1083,16 +1130,23 @@ const RulesModule = {
                     .replace('%s', wrapVal(e_interval));
                 break;
 
-            case 'pricing_volatility':
-                var v_stopDur = form.querySelector('[name="stop_pricing_duration"]').value || 30;
-                var v_threshold = form.querySelector('[name="volatility_threshold"]').value || 100;
-                var v_modeSelect = form.querySelector('[name="volatility_mode"]');
-                var v_modeText = v_modeSelect ? (v_modeSelect.value === 'POINTS' ? 'Points' : '%') : 'Points';
-                html = I18n.t('rule_preview_volatility')
+            case 'pricing':
+                var v_stopDur = form.querySelector('[name="stop_pricing_duration"]').value || 10;
+                var v_maxSpread = form.querySelector('[name="max_spread"]').value || 150;
+                html = I18n.t('rule_preview_pricing')
                     .replace('%s', getSymbolsText('pricing_scope'))
                     .replace('%s', wrapVal(v_stopDur))
+                    .replace('%s', wrapVal(v_maxSpread + ' pts'));
+                break;
+
+            case 'volatility':
+                var v_tw = form.querySelector('[name="time_window"]').value || 'M1';
+                var v_threshold = form.querySelector('[name="threshold_value"]').value || 500;
+                html = I18n.t('rule_preview_volatility')
+                    .replace('%s', getSymbolsText('volatility_scope'))
                     .replace('%s', wrapVal(v_threshold))
-                    .replace('%s', wrapVal(v_modeText));
+                    .replace('%s', wrapVal('Points'))
+                    .replace('%s', wrapVal(v_tw));
                 break;
 
             case 'nop_limit':
@@ -1169,7 +1223,7 @@ const RulesModule = {
 
         // 监控所有 tag-input 隐藏域变化
         var hiddenInputs = form.querySelectorAll('input[type="hidden"]');
-        var monitorNames = ['symbol_filter', 'monitoring_scope', 'pricing_scope', 'nop_scope'];
+        var monitorNames = ['symbol_filter', 'monitoring_scope', 'pricing_scope', 'volatility_scope', 'nop_scope'];
         for (var i = 0; i < hiddenInputs.length; i++) {
             var hiddenInput = hiddenInputs[i];
             if (monitorNames.indexOf(hiddenInput.name) >= 0) {

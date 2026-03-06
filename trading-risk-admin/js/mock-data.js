@@ -122,9 +122,10 @@ const MockData = {
         { rule_id: 'R040', source_id: 'DS001', rule_type: 'exposure_alert', name: 'Exposure Alert', description: '监控货币净敞口超标', icon: '📊', enabled: true, parameters: { target_currency: 'USD', exposure_threshold: 10000000, time_interval: 600, max_remind_count: 1, calculation_mode: 'ONLY_POSITIONS' }, trigger_action: 'alert', triggered_count: 2 },
         { rule_id: 'R041', source_id: 'DS001', rule_type: 'exposure_alert', name: 'Exposure Alert', description: '监控货币净敞口超标', icon: '📊', enabled: true, parameters: { target_currency: 'JPY', exposure_threshold: 50000000, time_interval: 600, max_remind_count: 1, calculation_mode: 'ONLY_POSITIONS' }, trigger_action: 'alert', triggered_count: 1 },
 
-        // 6. Pricing & Volatility - 行情监控
-        { rule_id: 'R050', source_id: 'DS001', rule_type: 'pricing_volatility', name: 'Pricing & Volatility', description: '监控行情中断和波动异常', icon: '📈', enabled: true, parameters: { pricing: { stop_pricing_duration: 30, scope: ['Forex', 'XAUUSD'] }, volatility: { mode: 'POINTS', threshold_value: 100, time_window: 'M1', digits_auto_detect: true } }, trigger_action: 'alert', triggered_count: 12 },
-        { rule_id: 'R051', source_id: 'DS003', rule_type: 'pricing_volatility', name: 'Pricing & Volatility', description: '监控行情中断和波动异常', icon: '📈', enabled: true, parameters: { pricing: { stop_pricing_duration: 60, scope: ['Crypto'] }, volatility: { mode: 'PERCENTAGE', threshold_value: 0.5, time_window: 'M1', digits_auto_detect: true } }, trigger_action: 'alert', triggered_count: 8 },
+        // 6. Pricing - 报价异常
+        { rule_id: 'R050', source_id: 'DS001', rule_type: 'pricing', name: 'Pricing Monitor', description: 'Monitor price gaps and staleness', icon: '⏱️', enabled: true, parameters: { pricing: { stop_pricing_duration: 30, max_spread: 150, scope: ['Forex', 'XAUUSD'] } }, trigger_action: 'alert', triggered_count: 12 },
+        // 7. Volatility - 波动率异常
+        { rule_id: 'R051', source_id: 'DS003', rule_type: 'volatility', name: 'Volatility Monitor', description: 'Monitor extreme price fluctuations', icon: '📈', enabled: true, parameters: { volatility: { mode: 'PERCENTAGE', threshold_value: 0.5, time_window: 'M1', scope: ['Crypto'] } }, trigger_action: 'alert', triggered_count: 8 },
 
         // 7. NOP Limit - 净头寸限额
         { rule_id: 'R060', source_id: 'DS001', rule_type: 'nop_limit', name: 'NOP Limit', description: '监控产品净头寸超限', icon: '📐', enabled: true, parameters: { symbol_name: 'XAUUSD', platform_type: 'MT4', nop_threshold: 5000.0, calculation_frequency: 5, alert_cooldown: 300 }, trigger_action: 'alert', triggered_count: 6 },
@@ -168,9 +169,10 @@ const MockData = {
         { alert_id: 'A040', source_id: 'DS001', rule_type: 'exposure_alert', rule_id: 'R040', account_id: 'SYSTEM', product: 'USD', trigger_time: '2024-01-15 12:00:00', trigger_value: 12500000, status: 'new', platform: 'MT4', details: { direction: 'LONG', threshold: 10000000, currency: 'USD' } },
         { alert_id: 'A041', source_id: 'DS002', rule_type: 'exposure_alert', rule_id: 'R041', account_id: 'SYSTEM', product: 'JPY', trigger_time: '2024-01-15 14:30:00', trigger_value: -8500000, status: 'reviewed', platform: 'MT5', details: { direction: 'SHORT', threshold: 5000000, currency: 'JPY' } },
 
-        // 6. Pricing & Volatility (行情异常)
-        { alert_id: 'A050', source_id: 'DS001', rule_type: 'pricing_volatility', rule_id: 'R050', account_id: 'SYSTEM', product: 'XAUUSD', trigger_time: '2024-01-15 09:15:00', trigger_value: 45, status: 'new', platform: 'MT4', details: { alert_subtype: 'PRICING', last_tick_time: '2024-01-15 09:14:15', threshold: 30 } },
-        { alert_id: 'A051', source_id: 'DS002', rule_type: 'pricing_volatility', rule_id: 'R051', account_id: 'SYSTEM', product: 'EURUSD', trigger_time: '2024-01-15 16:22:05', trigger_value: 85, status: 'new', platform: 'MT5', details: { alert_subtype: 'VOLATILITY', change_points: 85, time_window: 'M1' } },
+        // 6. Pricing 
+        { alert_id: 'A050', source_id: 'DS001', rule_type: 'pricing', rule_id: 'R050', account_id: 'SYSTEM', product: 'XAUUSD', trigger_time: '2024-01-15 09:15:00', trigger_value: 45, status: 'new', platform: 'MT4', details: { alert_subtype: 'STALE_PRICE', last_tick_time: '2024-01-15 09:14:15', threshold: 30 } },
+        // 7. Volatility
+        { alert_id: 'A051', source_id: 'DS002', rule_type: 'volatility', rule_id: 'R051', account_id: 'SYSTEM', product: 'EURUSD', trigger_time: '2024-01-15 16:22:05', trigger_value: 85, status: 'new', platform: 'MT5', details: { alert_subtype: 'VOLATILITY', change_points: 85, time_window: 'M1' } },
 
         // 7. NOP Limit (净头寸限额)
         { alert_id: 'A060', source_id: 'DS001', rule_type: 'nop_limit', rule_id: 'R060', account_id: 'SYSTEM', product: 'XAUUSD', trigger_time: '2024-01-15 13:00:05', trigger_value: 6200, status: 'new', platform: 'MT4', details: { threshold: 5000, net_position: 62, direction: 'LONG' } },
@@ -262,7 +264,8 @@ const MockData = {
                 liquidity_trade: alerts.filter(function (a) { return a.rule_type === 'liquidity_trade'; }).length,
                 scalping: alerts.filter(function (a) { return a.rule_type === 'scalping'; }).length,
                 exposure_alert: alerts.filter(function (a) { return a.rule_type === 'exposure_alert'; }).length,
-                pricing_volatility: alerts.filter(function (a) { return a.rule_type === 'pricing_volatility'; }).length,
+                pricing: alerts.filter(function (a) { return a.rule_type === 'pricing'; }).length,
+                volatility: alerts.filter(function (a) { return a.rule_type === 'volatility'; }).length,
                 nop_limit: alerts.filter(function (a) { return a.rule_type === 'nop_limit'; }).length,
                 watch_list: alerts.filter(function (a) { return a.rule_type === 'watch_list'; }).length,
                 reverse_positions: alerts.filter(function (a) { return a.rule_type === 'reverse_positions'; }).length,

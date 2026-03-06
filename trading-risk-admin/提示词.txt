@@ -2,3 +2,5 @@ Reverse Positions
 1.去掉冷却时间相关内容
 2.新增监控产品相关内容（UI 拿其他已经有的。）
 帮我推送到 github
+https://github.com/EastAndWeast/alert 请帮我把这个项目推送到这个 github 地址
+请打开授权界面，让我再授权一次

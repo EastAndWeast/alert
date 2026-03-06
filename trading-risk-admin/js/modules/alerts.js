@@ -247,19 +247,16 @@ const AlertsModule = {
             return parts.join(' | ');
         }
 
-        // 6. Pricing - 分类显示
+        // 6. Pricing - 停价显示
         if (t === 'pricing') {
-            if (d.alert_subtype === 'PRICING' || d.alert_subtype === 'STALE_PRICE') {
-                return v + 's | ' + I18n.t('pricing_stop');
-            } else if (d.alert_subtype === 'HIGH_SPREAD') {
-                return v + ' pts | High Spread';
-            }
-            return v;
+            return v + 's | ' + I18n.t('pricing_stop');
         }
 
         // 7. Volatility - 分类显示
         if (t === 'volatility') {
-            return (d.change_points || v) + (String(v).indexOf('%') > 0 ? '' : ' pts') + ' | ' + (d.time_window || 'M1');
+            var val = d.change_points || d.change_percentage || v;
+            var unit = d.change_points ? ' pts' : (d.change_percentage ? '%' : (String(v).indexOf('%') > 0 ? '' : ' pts'));
+            return val + unit + ' | ' + (d.time_window || 'M1');
         }
 
         // 7. NOP Limit - 手数 | 方向 | USD
@@ -317,8 +314,8 @@ const AlertsModule = {
         if (t === 'liquidity_trade') return d.order_count + ' ' + I18n.t('unit_orders') + ' ' + d.direction;
         if (t === 'scalping') return I18n.t('profit_usd_min_label') + ' $' + d.profit_usd;
         if (t === 'exposure_alert') return d.currency + ' ' + d.direction;
-        if (t === 'pricing') return d.alert_subtype;
-        if (t === 'volatility') return d.alert_subtype || 'VOLATILITY';
+        if (t === 'pricing') return I18n.t('pricing_stop');
+        if (t === 'volatility') return d.time_window || 'M1';
         if (t === 'nop_limit') return d.direction + ' ' + d.net_position + ' ' + I18n.t('unit_lots');
         if (t === 'watch_list') return d.action + ' ' + d.direction;
         if (t === 'reverse_positions') return d.close_direction + '→' + d.open_direction;

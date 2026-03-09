@@ -586,8 +586,8 @@ const RulesModule = {
                 if (dataSourceHtml) html += dataSourceHtml;
                 // Stale Price
                 var formStopDur = (p && p.stop_pricing_duration) || (p && p.pricing && p.pricing.stop_pricing_duration) || 10;
-                html += '    <div class="form-group"><label>' + I18n.t('stop_pricing_duration_label') + ' (' + I18n.t('unit_seconds') + ')</label>';
-                html += '      <input type="number" name="stop_pricing_duration" class="form-control" value="' + formStopDur + '"></div>';
+                html += '    <div class="form-group"><label>' + I18n.t('stop_pricing_duration_label') + ' (' + I18n.t('unit_seconds') + ') *</label>';
+                html += '      <input type="number" name="stop_pricing_duration" class="form-control" value="' + formStopDur + '" required min="1" onkeypress="return event.charCode >= 48 && event.charCode <= 57"></div>';
                 html += '    <div class="rule-tip">' + I18n.t('rule_tip_pricing') + '</div>';
                 html += '  </div>';
 

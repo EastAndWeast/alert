@@ -128,9 +128,9 @@ const MockData = {
         { rule_id: 'R051', source_id: 'DS003', rule_type: 'volatility', name: 'Volatility Monitor', description: 'Monitor extreme price fluctuations', icon: '📈', enabled: true, parameters: { volatility_mode: 'PERCENTAGE', threshold_value: 0.5, time_window: 'M1', volatility_scope: ['Crypto'] }, trigger_action: 'alert', triggered_count: 8 },
 
         // 7. NOP Limit - 净头寸限额
-        { rule_id: 'R060', source_id: 'DS001', rule_type: 'nop_limit', name: 'NOP Limit', description: '监控产品净头寸超限', icon: '📐', enabled: true, parameters: { symbol_name: 'XAUUSD', nop_threshold: 5000.0, calculation_frequency: 5, alert_cooldown: 300 }, trigger_action: 'alert', triggered_count: 6 },
-        { rule_id: 'R061', source_id: 'DS002', rule_type: 'nop_limit', name: 'NOP Limit', description: '监控产品净头寸超限', icon: '📐', enabled: true, parameters: { symbol_name: 'EURUSD', nop_threshold: 10000.0, calculation_frequency: 5, alert_cooldown: 300 }, trigger_action: 'alert', triggered_count: 3 },
-        { rule_id: 'R062', source_id: 'DS003', rule_type: 'nop_limit', name: 'NOP Limit', description: '监控产品净头寸超限', icon: '📐', enabled: true, parameters: { symbol_name: 'BTCUSD', nop_threshold: 100.0, calculation_frequency: 10, alert_cooldown: 600 }, trigger_action: 'alert', triggered_count: 2 },
+        { rule_id: 'R060', source_id: 'DS001', rule_type: 'nop_limit', name: 'NOP Limit', description: '监控产品净头寸超限', icon: '📐', enabled: true, parameters: { symbol_name: 'XAUUSD', nop_threshold: 5000.0 }, trigger_action: 'alert', triggered_count: 6 },
+        { rule_id: 'R061', source_id: 'DS002', rule_type: 'nop_limit', name: 'NOP Limit', description: '监控产品净头寸超限', icon: '📐', enabled: true, parameters: { symbol_name: 'EURUSD', nop_threshold: 10000.0 }, trigger_action: 'alert', triggered_count: 3 },
+        { rule_id: 'R062', source_id: 'DS003', rule_type: 'nop_limit', name: 'NOP Limit', description: '监控产品净头寸超限', icon: '📐', enabled: true, parameters: { symbol_name: 'BTCUSD', nop_threshold: 100.0 }, trigger_action: 'alert', triggered_count: 2 },
 
         // 8. Watch List - 重点账户监控
         { rule_id: 'R070', source_id: 'DS001', rule_type: 'watch_list', name: 'Watch List', description: '监控重点账户交易行为', icon: '👁️', enabled: true, parameters: { watched_accounts: [123456, 888888], monitoring_actions: ['OPEN_TRADE', 'PENDING_ORDER'], alert_priority: 'HIGH', lots_min_limit: 0.01 }, trigger_action: 'alert', triggered_count: 15 },

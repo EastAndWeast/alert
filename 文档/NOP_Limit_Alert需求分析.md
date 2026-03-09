@@ -106,13 +106,7 @@ NOP = |5510| = 5510
 
 ### 2.3 Solution配置参数
 
-| 参数 | 类型 | 说明 | 示例 |
-|-----|------|------|-----|
-| `Symbol_Name` | String | 监控的具体产品品种 | `XAUUSD`, `EURUSD` |
-| `Platform_Type` | Enum | 指定平台以应用不同系数 | `MT4` / `MT5` |
 | `NOP_Threshold` | Float | 触发报警的NOP数值阈值 | `5000.0` |
-| `Calculation_Frequency` | Integer | 计算NOP的频率(秒) | `5` (每5秒计算一次) |
-| `Alert_CoolDown` | Integer | 重复报警的冷却时间(秒) | `300` (5分钟) |
 
 ---
 
@@ -142,13 +136,7 @@ case 'nop_limit':
     html += '    <div class="form-group"><label>NOP阈值 *</label>';
     html += '      <input type="number" name="nop_threshold" value="5000" required></div>';
     
-    // 4. 计算频率
-    html += '    <div class="form-group"><label>计算频率 (秒)</label>';
-    html += '      <input type="number" name="calculation_frequency" value="5"></div>';
-    
-    // 5. 告警冷却时间
-    html += '    <div class="form-group"><label>告警冷却时间 (秒)</label>';
-    html += '      <input type="number" name="alert_cooldown" value="300"></div>';
+    // 4. 提示
     
     // 6. 提示
     html += '    <div class="rule-tip">' + I18n.t('rule_tip_nop_limit') + '</div>';
@@ -179,9 +167,7 @@ case 'nop_limit':
   parameters: {
     symbol_name: 'XAUUSD',         // 监控产品
     platform_type: 'MT4',          // 平台类型
-    nop_threshold: 5000.0,         // NOP阈值
-    calculation_frequency: 5,      // 计算频率(秒)
-    alert_cooldown: 300            // 冷却时间(秒)
+    nop_threshold: 5000.0          // NOP阈值
   }
 }
 ```
@@ -265,8 +251,7 @@ NOP:  |Σ Value_Buy + Σ Value_Sell|
 
 | 参数 | 客户需求 | Solution要求 | 系统实现 | 评估 |
 |-----|---------|-------------|---------|------|
-| `calculation_frequency` | ❌ 未提及 | ✅ 要求 | ✅ `calculation_frequency` | ⚠️ 合理扩展 |
-| `alert_cooldown` | ❌ 未提及 | ✅ 要求 | ✅ `alert_cooldown` | ⚠️ 合理扩展 |
+| `alert_cooldown` | ❌ 已移除 | ✅ 要求 | ✅ - | ✅ 满足 |
 | 多产品监控 | ❌ 单产品示例 | ❌ 单产品 | ✅ 标签输入支持多个 | ⚠️ UI增强 |
 
 **说明**:
@@ -285,19 +270,17 @@ NOP:  |Σ Value_Buy + Σ Value_Sell|
 | `symbol_name/filter` | ✅ 明确要求 | ✅ 要求 | ❌ 否 | 核心参数 |
 | `platform_type` | ✅ 明确要求 | ✅ 要求 | ❌ 否 | 核心参数(区分除数) |
 | `nop_threshold` | ✅ 明确要求 | ✅ 要求 | ❌ 否 | 核心参数 |
-| `calculation_frequency` | ❌ 未提及 | ✅ 要求 | ❌ 否 | 合理的性能优化 |
-| `alert_cooldown` | ❌ 未提及 | ✅ 要求 | ❌ 否 | 合理的告警控制 |
 
 **结论**: ✅ **没有过度设计**
 
 **理由**:
-1. `calculation_frequency` - 如果实时计算所有持仓的NOP,会消耗大量资源。定时计算(如每5秒)是**合理的性能优化**。
-2. `alert_cooldown` - 如果NOP持续超标,每次计算都告警会导致**告警轰炸**。冷却时间是**必要的告警控制**。
+3. 另外目前根据用户要求，移除了“计算频率”和“冷却时间”的手动配置。
 
-**对比其他规则**:
-- Exposure Alert也有`time_interval`和`max_remind_count`
-- Pricing & Volatility也有时间窗口控制
-- 所以这种频率控制是**系统设计模式**,不是过度设计
+**对比验证**:
+```
+Exposure Alert:    time_interval + max_remind_count
+Pricing & Volatility: time_window (固定M1)
+```
 
 ### 6.2 UI vs Mock数据不一致
 
@@ -384,8 +367,6 @@ renderTagInput('symbol_filter', ...)  // 标签输入,支持多个
 - ✅ 计算公式与客户要求完全一致
 
 **额外增强**:
-- ✅ 计算频率配置(性能优化)
-- ✅ 冷却时间配置(告警控制)
 - ✅ 可能支持多产品监控(UI标签输入)
 
 **待确认的部分** (功能层面):
@@ -406,16 +387,10 @@ renderTagInput('symbol_filter', ...)  // 标签输入,支持多个
 3. ✅ `nop_threshold` - NOP阈值
 
 **额外参数** (Solution要求,客户未提及):
-4. ✅ `calculation_frequency` - **合理的性能优化**
-   - 实时计算所有持仓会消耗大量资源
-   - 定时计算(如每5秒)是必要的
-   
-5. ✅ `alert_cooldown` - **合理的告警控制**
-   - 防止NOP持续超标时的告警轰炸
-   - 与其他规则的频率控制逻辑一致
+- 另外目前根据用户要求，移除了“计算频率”和“冷却时间”的手动配置。
 
 **UI增强** (可能):
-6. ✅ 多产品监控 - **合理的功能增强**
+4. ✅ 多产品监控 - **合理的功能增强**
    - 客户示例只提到单个产品
    - 但支持多产品监控是常见需求
    - 提高了系统的灵活性
@@ -423,12 +398,6 @@ renderTagInput('symbol_filter', ...)  // 标签输入,支持多个
 **结论**: 
 - ❌ **没有任何过度设计**
 - ✅ **所有额外参数都有明确的合理性**
-- ✅ **符合系统设计的一致性**(其他规则也有频率控制)
-
-**对比验证**:
-```
-Exposure Alert:    time_interval + max_remind_count
-Pricing & Volatility: time_window (固定M1)
 NOP Limit:         calculation_frequency + alert_cooldown
 
 结论: 频率控制是系统设计模式,不是过度设计

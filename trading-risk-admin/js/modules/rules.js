@@ -153,8 +153,6 @@ const RulesModule = {
 
                 html += '<div class="param-item"><strong>' + I18n.t('nop_threshold_label') + '：</strong>' + Utils.formatNumber(p.nop_threshold) + '</div>';
                 html += '<div class="param-item"><strong>' + I18n.t('monitor_symbols_label') + '：</strong>' + (p.symbol_filter && p.symbol_filter.length ? p.symbol_filter.join(', ') : I18n.t('all')) + '</div>';
-                html += '<div class="param-item"><strong>' + I18n.t('calculation_frequency_label') + '：</strong>' + p.calculation_frequency + ' ' + I18n.t('unit_seconds') + '</div>';
-                html += '<div class="param-item"><strong>' + I18n.t('alert_cooldown_label') + '：</strong>' + p.alert_cooldown + ' ' + I18n.t('unit_seconds') + '</div>';
                 break;
             case 'watch_list':
                 html += '<div class="param-item"><strong>' + I18n.t('monitored_accounts_label') + '：</strong>' + p.watched_accounts.join(', ') + '</div>';
@@ -166,7 +164,7 @@ const RulesModule = {
                 break;
             case 'reverse_positions':
                 html += '<div class="param-item"><strong>' + I18n.t('max_reverse_interval_label') + '：</strong>' + p.max_reverse_interval + ' ' + I18n.t('unit_seconds') + '</div>';
-                html += '<div class="param-item"><strong>' + I18n.t('min_reverse_lot_label') + '：</strong>' + p.min_reverse_lot + ' ' + I18n.t('unit_lots') + '</div>';
+                html += '<div class="param-item"><strong>' + I18n.t('min_reverse_lot_label') + '：</strong>' + p.min_reverse_lot + ' ' + I18n.t('lot_unit') + '</div>';
                 html += '<div class="param-item"><strong>' + I18n.t('min_reverse_value_usd_label') + '：</strong>$' + Utils.formatNumber(p.min_reverse_value_usd) + '</div>';
                 html += '<div class="param-item"><strong>' + I18n.t('monitor_symbols_label') + '：</strong>' + (p.symbol_filter && p.symbol_filter.length ? p.symbol_filter.join(', ') : I18n.t('all')) + '</div>';
                 break;
@@ -649,13 +647,8 @@ const RulesModule = {
                 // 左侧：参数设置
                 html += '  <div class="rule-sidebar">';
                 if (dataSourceHtml) html += dataSourceHtml;
-
                 html += '    <div class="form-group"><label>' + I18n.t('nop_threshold_label') + ' *</label>';
                 html += '      <input type="number" name="nop_threshold" class="form-control" value="' + (p ? p.nop_threshold : 5000) + '" required></div>';
-                html += '    <div class="form-group"><label>' + I18n.t('calculation_frequency_label') + ' (' + I18n.t('unit_seconds') + ')</label>';
-                html += '      <input type="number" name="calculation_frequency" class="form-control" value="' + (p ? p.calculation_frequency : 5) + '"></div>';
-                html += '    <div class="form-group"><label>' + I18n.t('alert_cooldown_label') + ' (' + I18n.t('unit_seconds') + ')</label>';
-                html += '      <input type="number" name="alert_cooldown" class="form-control" value="' + (p ? p.alert_cooldown : 300) + '"></div>';
                 html += '    <div class="rule-tip">' + I18n.t('rule_tip_nop_limit') + '</div>';
                 html += '  </div>';
 
@@ -814,10 +807,7 @@ const RulesModule = {
 
             case 'nop_limit':
                 p.symbol_filter = formData.get('symbol_filter') ? formData.get('symbol_filter').split(',').map(function (s) { return s.trim(); }).filter(function (s) { return s; }) : [];
-
                 p.nop_threshold = parseFloat(formData.get('nop_threshold'));
-                p.calculation_frequency = parseInt(formData.get('calculation_frequency')) || 5;
-                p.alert_cooldown = parseInt(formData.get('alert_cooldown')) || 300;
                 break;
 
 
@@ -1155,14 +1145,12 @@ const RulesModule = {
 
             case 'nop_limit':
                 var n_nopVal = form.querySelector('[name="nop_threshold"]').value || 5000;
-                var n_nopFreq = form.querySelector('[name="calculation_frequency"]').value || 5;
-                var n_nopCool = form.querySelector('[name="alert_cooldown"]').value || 300;
+                var n_platformSelect = form.querySelector('[name="source_id"]') || form.querySelector('[name="platform_type"]');
+                var n_platform = n_platformSelect ? n_platformSelect.options[n_platformSelect.selectedIndex].text : 'MT4';
                 html = I18n.t('rule_preview_nop')
                     .replace('%s', getSymbolsText('symbol_filter'))
                     .replace('%s', wrapVal(Utils.formatNumber(n_nopVal)))
-                    .replace('%s', '')
-                    .replace('%s', wrapVal(n_nopFreq))
-                    .replace('%s', wrapVal(n_nopCool));
+                    .replace('%s', wrapVal(n_platform));
                 break;
 
             case 'watch_list':
@@ -1212,17 +1200,12 @@ const RulesModule = {
         var form = document.getElementById('ruleForm');
         if (!form) return;
 
-        // 监听所有 input 变化
-        var textInputs = form.querySelectorAll('input[type="number"], input[type="text"]');
-        for (var i = 0; i < textInputs.length; i++) {
-            textInputs[i].addEventListener('input', function () { self.updateRulePreview(ruleType); });
-        }
-
-        // 监听所有 checkbox 和 select 变化
-        var otherInputs = form.querySelectorAll('input[type="checkbox"], select');
-        for (var i = 0; i < otherInputs.length; i++) {
-            otherInputs[i].addEventListener('change', function () { self.updateRulePreview(ruleType); });
-        }
+        // 监听所有输入框和下拉框
+        var inputs = form.querySelectorAll('input, select, textarea');
+        inputs.forEach(function (input) {
+            input.addEventListener('input', function () { RulesModule.updateRulePreview(ruleType); });
+            input.addEventListener('change', function () { RulesModule.updateRulePreview(ruleType); });
+        });
 
         // 监控所有 tag-input 隐藏域变化
         var hiddenInputs = form.querySelectorAll('input[type="hidden"]');

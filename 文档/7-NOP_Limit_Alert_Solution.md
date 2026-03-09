@@ -27,7 +27,7 @@
 ## 2. 例子
 
 **场景：黄金 (XAUUSD) NOP 报警**
-- **平台**: MT5 (折算系数 10000)。
+- **平台类型**: MT5 (系数: 10000)
 - **合约规格**: ContractSize = 100。
 - **风控配置**: XAUUSD 的 NOP 阈值设为 `5000`。
 - **当前持仓**:
@@ -49,5 +49,3 @@
 | `Symbol_Name` | String | 监控的具体产品品种 | `XAUUSD`, `EURUSD` |
 | `Platform_Type` | Enum | 指定平台以应用不同系数 | `MT4` / `MT5` |
 | `NOP_Threshold` | Float | 触发报警的 NOP 数值阈值 | `5000.0` |
-| `Calculation_Frequency`| Integer | 计算 NOP 的频率（秒） | `5` (每5秒计算一次) |
-| `Alert_CoolDown` | Integer | 重复报警的冷却时间（秒） | `300` (5分钟) |

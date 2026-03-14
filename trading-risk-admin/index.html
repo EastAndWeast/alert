@@ -8,6 +8,14 @@
     <meta name="description" content="MT4/MT5 交易风控与行为监控管理系统">
     <link rel="stylesheet" href="css/styles.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .nav-icon i[data-lucide], .stat-icon i[data-lucide], .card-title i[data-lucide], .section-header i[data-lucide] { width: 18px; height: 18px; stroke-width: 2; vertical-align: -3px; }
+        .stat-icon i[data-lucide] { width: 24px; height: 24px; }
+        .logo-icon i[data-lucide] { width: 28px; height: 28px; stroke: #6366f1; }
+        .btn-icon i[data-lucide], .header-actions i[data-lucide] { width: 18px; height: 18px; vertical-align: -3px; }
+        .rule-icon-large i[data-lucide] { width: 32px; height: 32px; }
+    </style>
 </head>
 
 <body>
@@ -16,11 +24,11 @@
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
-                    <span class="logo-icon">⚡</span>
+                    <span class="logo-icon"><i data-lucide="shield-alert"></i></span>
                     <span class="logo-text">RiskGuard</span>
                 </div>
                 <button class="sidebar-toggle" id="sidebarToggle">
-                    <span class="toggle-icon">☰</span>
+                    <span class="toggle-icon"><i data-lucide="menu"></i></span>
                 </button>
             </div>
 
@@ -28,13 +36,13 @@
                 <ul class="nav-list">
                     <li class="nav-item">
                         <a href="#dashboard" class="nav-link active" data-page="dashboard">
-                            <span class="nav-icon">📊</span>
+                            <span class="nav-icon"><i data-lucide="layout-dashboard"></i></span>
                             <span class="nav-text">Dashboard</span>
                         </a>
                     </li>
                     <li class="nav-item nav-group">
                         <div class="nav-group-header">
-                            <span class="nav-icon">⚙️</span>
+                            <span class="nav-icon"><i data-lucide="settings"></i></span>
                             <span class="nav-text" data-i18n="rules">规则管理</span>
                             <span class="nav-arrow">▼</span>
                         </div>
@@ -65,63 +73,63 @@
                     </li>
                     <li class="nav-item">
                         <a href="#products" class="nav-link" data-page="products">
-                            <span class="nav-icon">📦</span>
+                            <span class="nav-icon"><i data-lucide="package"></i></span>
                             <span class="nav-text" data-i18n="products">产品映射</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="#alerts" class="nav-link" data-page="alerts">
-                            <span class="nav-icon">🔔</span>
+                            <span class="nav-icon"><i data-lucide="bell"></i></span>
                             <span class="nav-text" data-i18n="alerts">告警记录</span>
                             <span class="nav-badge" id="alertBadge">5</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="#accounts" class="nav-link" data-page="accounts">
-                            <span class="nav-icon">👥</span>
+                            <span class="nav-icon"><i data-lucide="users"></i></span>
                             <span class="nav-text" data-i18n="accounts">账户管理</span>
                         </a>
                     </li>
                     <li class="nav-item nav-divider" id="adminDivider"></li>
                     <li class="nav-item" id="navCompanies">
                         <a href="#companies" class="nav-link" data-page="companies">
-                            <span class="nav-icon">🏢</span>
+                            <span class="nav-icon"><i data-lucide="building-2"></i></span>
                             <span class="nav-text" data-i18n="companies">公司管理</span>
                         </a>
                     </li>
                     <li class="nav-item" id="navDatasources">
                         <a href="#datasources" class="nav-link" data-page="datasources">
-                            <span class="nav-icon">🔌</span>
+                            <span class="nav-icon"><i data-lucide="plug"></i></span>
                             <span class="nav-text" data-i18n="datasources">数据源管理</span>
                         </a>
                     </li>
                     <li class="nav-item" id="navUsers">
                         <a href="#users" class="nav-link" data-page="users">
-                            <span class="nav-icon">👤</span>
+                            <span class="nav-icon"><i data-lucide="user"></i></span>
                             <span class="nav-text" data-i18n="users">用户管理</span>
                         </a>
                     </li>
                     <li class="nav-item" id="navRoles">
                         <a href="#roles" class="nav-link" data-page="roles">
-                            <span class="nav-icon">🔐</span>
+                            <span class="nav-icon"><i data-lucide="shield"></i></span>
                             <span class="nav-text" data-i18n="roles">角色管理</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="#settings" class="nav-link" data-page="settings">
-                            <span class="nav-icon">🔧</span>
+                            <span class="nav-icon"><i data-lucide="wrench"></i></span>
                             <span class="nav-text" data-i18n="settings">全局配置</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="#push-styles" class="nav-link" data-page="push-styles">
-                            <span class="nav-icon">🎨</span>
+                            <span class="nav-icon"><i data-lucide="palette"></i></span>
                             <span class="nav-text" data-i18n="push_styles">推送样式</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="#audit" class="nav-link" data-page="audit">
-                            <span class="nav-icon">📜</span>
+                            <span class="nav-icon"><i data-lucide="scroll-text"></i></span>
                             <span class="nav-text" data-i18n="audit">审计日志</span>
                         </a>
                     </li>
@@ -136,7 +144,7 @@
                         <span class="user-role" data-i18n="footer_role">风控管理员</span>
                     </div>
                     <button class="btn-icon" data-i18n-title="logout" title="退出登录" onclick="App.logout()"
-                        style="margin-left: auto;">🚪</button>
+                        style="margin-left: auto;"><i data-lucide="log-out"></i></button>
                 </div>
             </div>
         </aside>
@@ -167,11 +175,11 @@
                     <div class="header-time" id="headerTime"></div>
                     <div class="header-actions">
                         <button class="btn-icon" id="themeToggle" onclick="App.toggleTheme()"
-                            data-i18n-title="theme_toggle" title="Toggle Theme">🌙</button>
+                            data-i18n-title="theme_toggle" title="Toggle Theme"><i data-lucide="moon"></i></button>
                         <button class="btn btn-secondary btn-sm" id="langBtn"
                             onclick="I18n.switch(I18n.currentLang === 'en' ? 'zh' : 'en')">🇺🇸 EN</button>
                         <button class="btn-icon" data-i18n-title="refresh" title="刷新数据"
-                            onclick="App.refresh()">🔄</button>
+                            onclick="App.refresh()"><i data-lucide="refresh-cw"></i></button>
                     </div>
                 </div>
             </header>

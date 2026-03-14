@@ -78,6 +78,9 @@ var Router = {
         // 渲染内容
         document.getElementById('contentWrapper').innerHTML = config.render();
 
+        // 刷新 Lucide 图标
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+
         // 执行初始化函数
         if (config.init) {
             setTimeout(config.init, 100);

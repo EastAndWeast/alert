@@ -1,0 +1,8 @@
+Step Id: 0
+<USER_REQUEST>
+请帮我把这个项目的代码提交到github上面
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-03-14T23:54:09+08:00.
+Active Document: d:\同步资源库\工作\HexPay\3.AI\Google antigravity\18.Alert项目需求分析\trading-risk-admin\index.html
+</ADDITIONAL_METADATA>

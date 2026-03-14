@@ -7,7 +7,7 @@ const SettingsModule = {
             <div class="grid grid-2">
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">💱 ${I18n.t('currency_settings')}</h3>
+                        <h3 class="card-title"><i data-lucide="coins"></i> ${I18n.t('currency_settings')}</h3>
                     </div>
                     <div class="card-body">
                         <div class="form-group">
@@ -50,7 +50,7 @@ const SettingsModule = {
 
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">📊 ${I18n.t('data_settings')}</h3>
+                        <h3 class="card-title"><i data-lucide="database"></i> ${I18n.t('data_settings')}</h3>
                     </div>
                     <div class="card-body">
                         <div class="form-group">
@@ -67,7 +67,7 @@ const SettingsModule = {
 
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">🔔 ${I18n.t('notification_settings')}</h3>
+                        <h3 class="card-title"><i data-lucide="bell"></i> ${I18n.t('notification_settings')}</h3>
                     </div>
                     <div class="card-body">
                         <div class="form-group" style="display: flex; align-items: center; justify-content: space-between;">
@@ -105,7 +105,7 @@ const SettingsModule = {
 
                 <div class="card" style="grid-column: span 2;">
                     <div class="card-header">
-                        <h3 class="card-title">🔗 ${I18n.t('webhook_settings')}</h3>
+                        <h3 class="card-title"><i data-lucide="link"></i> ${I18n.t('webhook_settings')}</h3>
                     </div>
                     <div class="card-body">
                         <div class="grid grid-2" style="gap: 24px;">
@@ -113,7 +113,7 @@ const SettingsModule = {
                             <div class="webhook-panel" style="padding: 16px; border: 1px solid var(--border-color); border-radius: 8px;">
                                 <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
                                     <div style="font-weight: 600; display: flex; align-items: center; gap: 8px;">
-                                        <span>✈️ ${I18n.t('telegram_notify')}</span>
+                                        <span><i data-lucide="send" style="width:14px;height:14px;vertical-align:-2px;"></i> ${I18n.t('telegram_notify')}</span>
                                         <i class="help-icon" style="cursor: pointer; opacity: 0.6;" onclick="App.showGuide('telegram')">❓</i>
                                     </div>
                                     <label class="switch">
@@ -131,7 +131,7 @@ const SettingsModule = {
                                 </div>
                                 <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
                                     <button class="btn btn-sm btn-secondary" onclick="SettingsModule.testWebhook('telegram', this)">
-                                        <span>⚡ ${I18n.t('test_webhook')}</span>
+                                        <span><i data-lucide="zap" style="width:14px;height:14px;vertical-align:-2px;"></i> ${I18n.t('test_webhook')}</span>
                                     </button>
                                 </div>
                             </div>
@@ -140,7 +140,7 @@ const SettingsModule = {
                             <div class="webhook-panel" style="padding: 16px; border: 1px solid var(--border-color); border-radius: 8px;">
                                 <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
                                     <div style="font-weight: 600; display: flex; align-items: center; gap: 8px;">
-                                        <span>👥 ${I18n.t('teams_notify')}</span>
+                                        <span><i data-lucide="users" style="width:14px;height:14px;vertical-align:-2px;"></i> ${I18n.t('teams_notify')}</span>
                                         <i class="help-icon" style="cursor: pointer; opacity: 0.6;" onclick="App.showGuide('teams')">❓</i>
                                     </div>
                                     <label class="switch">
@@ -154,7 +154,7 @@ const SettingsModule = {
                                 </div>
                                 <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
                                     <button class="btn btn-sm btn-secondary" onclick="SettingsModule.testWebhook('teams', this)">
-                                        <span>⚡ ${I18n.t('test_webhook')}</span>
+                                        <span><i data-lucide="zap" style="width:14px;height:14px;vertical-align:-2px;"></i> ${I18n.t('test_webhook')}</span>
                                     </button>
                                 </div>
                             </div>
@@ -163,7 +163,7 @@ const SettingsModule = {
                             <div class="webhook-panel" style="padding: 16px; border: 1px solid var(--border-color); border-radius: 8px;">
                                 <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
                                     <div style="font-weight: 600; display: flex; align-items: center; gap: 8px;">
-                                        <span>💬 ${I18n.t('slack_notify')}</span>
+                                        <span><i data-lucide="hash" style="width:14px;height:14px;vertical-align:-2px;"></i> ${I18n.t('slack_notify')}</span>
                                         <i class="help-icon" style="cursor: pointer; opacity: 0.6;" onclick="App.showGuide('slack')">❓</i>
                                     </div>
                                     <label class="switch">
@@ -177,7 +177,7 @@ const SettingsModule = {
                                 </div>
                                 <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
                                     <button class="btn btn-sm btn-secondary" onclick="SettingsModule.testWebhook('slack', this)">
-                                        <span>⚡ ${I18n.t('test_webhook')}</span>
+                                        <span><i data-lucide="zap" style="width:14px;height:14px;vertical-align:-2px;"></i> ${I18n.t('test_webhook')}</span>
                                     </button>
                                 </div>
                             </div>
@@ -186,7 +186,7 @@ const SettingsModule = {
                             <div class="webhook-panel" style="padding: 16px; border: 1px solid var(--border-color); border-radius: 8px;">
                                 <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
                                     <div style="font-weight: 600; display: flex; align-items: center; gap: 8px;">
-                                        <span>🐦 ${I18n.t('lark_notify')}</span>
+                                        <span><i data-lucide="bird" style="width:14px;height:14px;vertical-align:-2px;"></i> ${I18n.t('lark_notify')}</span>
                                         <i class="help-icon" style="cursor: pointer; opacity: 0.6;" onclick="App.showGuide('lark')">❓</i>
                                     </div>
                                     <label class="switch">
@@ -200,7 +200,7 @@ const SettingsModule = {
                                 </div>
                                 <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
                                     <button class="btn btn-sm btn-secondary" onclick="SettingsModule.testWebhook('lark', this)">
-                                        <span>⚡ ${I18n.t('test_webhook')}</span>
+                                        <span><i data-lucide="zap" style="width:14px;height:14px;vertical-align:-2px;"></i> ${I18n.t('test_webhook')}</span>
                                     </button>
                                 </div>
                             </div>

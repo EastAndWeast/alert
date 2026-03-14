@@ -6,7 +6,7 @@ var UsersModule = {
         var canManage = Permissions.can(currentUser, 'manage_users');
 
         if (!canManage) {
-            return '<div class="empty-state"><div class="empty-state-icon">🔒</div><div class="empty-state-title">' + I18n.t('no_access') + '</div><div class="empty-state-desc">' + I18n.t('no_user_manage_permission') + '</div></div>';
+            return '<div class="empty-state"><div class="empty-state-icon"><i data-lucide="lock" style="width:48px;height:48px;"></i></div><div class="empty-state-title">' + I18n.t('no_access') + '</div><div class="empty-state-desc">' + I18n.t('no_user_manage_permission') + '</div></div>';
         }
 
         var users;
@@ -19,22 +19,22 @@ var UsersModule = {
         return '\
             <div class="grid grid-4" style="margin-bottom: var(--spacing-lg);">\
                 <div class="stat-card">\
-                    <div class="stat-icon">👥</div>\
+                    <div class="stat-icon"><i data-lucide="users"></i></div>\
                     <div class="stat-value">' + users.length + '</div>\
                     <div class="stat-label">' + I18n.t('total_users') + '</div>\
                 </div>\
                 <div class="stat-card danger">\
-                    <div class="stat-icon">👑</div>\
+                    <div class="stat-icon"><i data-lucide="crown"></i></div>\
                     <div class="stat-value">' + users.filter(function (u) { return u.role === 'super_admin' || u.role === 'company_admin'; }).length + '</div>\
                     <div class="stat-label">' + I18n.t('admins') + '</div>\
                 </div>\
                 <div class="stat-card info">\
-                    <div class="stat-icon">👤</div>\
+                    <div class="stat-icon"><i data-lucide="user"></i></div>\
                     <div class="stat-value">' + users.filter(function (u) { return u.role === 'company_user'; }).length + '</div>\
                     <div class="stat-label">' + I18n.t('operators') + '</div>\
                 </div>\
                 <div class="stat-card secondary">\
-                    <div class="stat-icon">👁️</div>\
+                    <div class="stat-icon"><i data-lucide="eye"></i></div>\
                     <div class="stat-value">' + users.filter(function (u) { return u.role === 'viewer'; }).length + '</div>\
                     <div class="stat-label">' + I18n.t('readonly_users') + '</div>\
                 </div>\
@@ -42,7 +42,7 @@ var UsersModule = {
             ' + this.renderRolePermissions() + '\
             <div class="card">\
                 <div class="card-header">\
-                    <h3 class="card-title">👤 ' + I18n.t('user_list') + '</h3>\
+                    <h3 class="card-title"><i data-lucide="user"></i> ' + I18n.t('user_list') + '</h3>\
                     <button class="btn btn-primary" onclick="UsersModule.addUser()">+ ' + I18n.t('add_user') + '</button>\
                 </div>\
                 <div class="card-body" style="padding: 0;">\
@@ -72,7 +72,7 @@ var UsersModule = {
         return '\
             <div class="card" style="margin-bottom: var(--spacing-lg);">\
                 <div class="card-header">\
-                    <h3 class="card-title">🔐 ' + I18n.t('role_perm_desc') + '</h3>\
+                    <h3 class="card-title"><i data-lucide="shield"></i> ' + I18n.t('role_perm_desc') + '</h3>\
                 </div>\
                 <div class="card-body">\
                     <div class="table-container">\
@@ -508,7 +508,7 @@ var UsersModule = {
 
         App.showModal('确认删除', '\
             <div style="text-align: center; padding: 20px 0;">\
-                <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>\
+                <div style="font-size: 48px; margin-bottom: 16px;"><i data-lucide="alert-triangle" style="width:48px;height:48px;"></i></div>\
                 <p style="font-size: 16px; margin-bottom: 8px;">确定要删除用户 <strong>' + u.display_name + '</strong> 吗？</p>\
                 <p style="color: var(--text-muted);">此操作不可恢复</p>\
             </div>\

@@ -29,26 +29,28 @@ const ProductsModule = {
         // 页面头部
         html += '<div class="page-header">';
         html += '<div class="page-header-left">';
-        html += '<span class="rule-icon-large">📦</span>';
+        html += '<span class="rule-icon-large"><i data-lucide="package"></i></span>';
         html += '<div><h2>Symbol Mapping Engine</h2><p class="text-muted">' + I18n.t('symbol_mapping_engine_desc') + '</p></div>';
         html += '</div>';
         if (!isReadOnly) {
             html += '<div class="header-actions">';
-            html += '<button class="btn btn-secondary" onclick="ProductsModule.showCategoryManager()">📁 ' + I18n.t('manage_categories') + '</button>';
-            html += '<button class="btn btn-primary" onclick="ProductsModule.showAddMappingModal()"><span>➕</span> ' + I18n.t('add_mapping') + '</button>';
+            html += '<button class="btn btn-secondary" onclick="ProductsModule.showCategoryManager()"><i data-lucide="folder" style="width:14px;height:14px;vertical-align:-2px;"></i> ' + I18n.t('manage_categories') + '</button>';
+            html += '<button class="btn btn-primary" onclick="ProductsModule.showAddMappingModal()"><i data-lucide="plus" style="width:14px;height:14px;vertical-align:-2px;"></i> ' + I18n.t('add_mapping') + '</button>';
             html += '</div>';
         }
         html += '</div>';
 
         // 产品大类概览卡片
         html += '<div class="category-overview">';
-        html += '<h3>📁 ' + I18n.t('product_category_definition') + '</h3>';
+        html += '<h3><i data-lucide="folder" style="width:16px;height:16px;vertical-align:-3px;"></i> ' + I18n.t('product_category_definition') + '</h3>';
         html += '<div class="category-grid">';
         for (var i = 0; i < categories.length; i++) {
             var cat = categories[i];
             var count = mappings.filter(function (m) { return m.product_category === cat.id; }).length;
             html += '<div class="category-card">';
-            html += '<div class="category-icon">' + cat.icon + '</div>';
+            var catColors = { metals: 'warning', forex_major: 'primary', forex_minor: 'success', crypto: 'info', indices: 'dark', energy: 'danger' };
+            var catColor = catColors[cat.id] || 'primary';
+            html += '<div class="category-icon color-' + catColor + '">' + cat.icon + '</div>';
             html += '<div class="category-info">';
             html += '<div class="category-name">' + I18n.t(cat.id + '_category_name') + '</div>';
             html += '<div class="category-desc">' + I18n.t(cat.id + '_category_desc') + '</div>';
@@ -80,7 +82,7 @@ const ProductsModule = {
 
         // 映射表格
         html += '<div class="section-card">';
-        html += '<div class="section-header"><h3>🔗 ' + I18n.t('symbol_mapping_list') + '</h3><span class="badge badge-info">' + mappings.length + ' ' + I18n.t('unit_records') + '</span></div>';
+        html += '<div class="section-header"><h3><i data-lucide="link"></i> ' + I18n.t('symbol_mapping_list') + '</h3><span class="badge badge-info">' + mappings.length + ' ' + I18n.t('unit_records') + '</span></div>';
         html += '<div class="section-body" style="padding:0;">';
         html += '<table class="data-table"><thead><tr>';
         html += '<th>' + I18n.t('datasource_header') + '</th><th>' + I18n.t('raw_symbol_header') + '</th><th>' + I18n.t('unified_code_header') + '</th><th>' + I18n.t('product_category_header') + '</th><th>' + I18n.t('matching_rule_header') + '</th><th>' + I18n.t('status_header') + '</th>';
@@ -93,12 +95,12 @@ const ProductsModule = {
         // 批量导入区域
         if (!isReadOnly) {
             html += '<div class="section-card mt-4">';
-            html += '<div class="section-header"><h3>📤 ' + I18n.t('batch_operations') + '</h3></div>';
+            html += '<div class="section-header"><h3><i data-lucide="upload" style="width:16px;height:16px;vertical-align:-3px;"></i> ' + I18n.t('batch_operations') + '</h3></div>';
             html += '<div class="section-body">';
             html += '<div class="batch-actions">';
-            html += '<button class="btn btn-secondary" onclick="ProductsModule.showBatchImportModal()">📥 ' + I18n.t('batch_import') + '</button>';
-            html += '<button class="btn btn-secondary" onclick="ProductsModule.exportMappings()">📤 ' + I18n.t('export_config') + '</button>';
-            html += '<button class="btn btn-secondary" onclick="ProductsModule.autoDetect()">🔍 ' + I18n.t('auto_detect_new') + '</button>';
+            html += '<button class="btn btn-secondary" onclick="ProductsModule.showBatchImportModal()"><i data-lucide="download" style="width:14px;height:14px;vertical-align:-2px;"></i> ' + I18n.t('batch_import') + '</button>';
+            html += '<button class="btn btn-secondary" onclick="ProductsModule.exportMappings()"><i data-lucide="upload" style="width:14px;height:14px;vertical-align:-2px;"></i> ' + I18n.t('export_config') + '</button>';
+            html += '<button class="btn btn-secondary" onclick="ProductsModule.autoDetect()"><i data-lucide="search" style="width:14px;height:14px;vertical-align:-2px;"></i> ' + I18n.t('auto_detect_new') + '</button>';
             html += '</div></div></div>';
         }
 
@@ -112,7 +114,7 @@ const ProductsModule = {
         return mappings.map(function (m) {
             var cat = categories.find(function (c) { return c.id === m.product_category; });
             var catName = cat ? I18n.t(cat.id + '_category_name') : m.product_category;
-            var catIcon = cat ? cat.icon : '❓';
+            var catIcon = cat ? cat.icon : '<i data-lucide="help-circle"></i>';
             var matchType = m.match_pattern ? I18n.t('wildcard_matching') : I18n.t('exact_matching');
 
             var row = '<tr data-id="' + m.id + '">';
@@ -211,7 +213,7 @@ const ProductsModule = {
         var html = '<form id="categoryForm">';
         html += '<div class="form-group"><label>' + I18n.t('category_id_label') + ' * (' + I18n.t('english_required') + ')</label><input type="text" name="id" class="form-control" required placeholder="' + I18n.t('placeholder_category_id') + '"></div>';
         html += '<div class="form-group"><label>' + I18n.t('category_name_label') + ' *</label><input type="text" name="name" class="form-control" required placeholder="' + I18n.t('placeholder_category_name_input') + '"></div>';
-        html += '<div class="form-group"><label>' + I18n.t('icon_label') + ' (Emoji)</label><input type="text" name="icon" class="form-control" value="📦" placeholder="例如: 🥇"></div>';
+        html += '<div class="form-group"><label>' + I18n.t('icon_label') + '</label><input type="text" name="icon" class="form-control" value="📦" placeholder="例如: 🥇"></div>';
         html += '<div class="form-group"><label>' + I18n.t('description_label') + '</label><input type="text" name="description" class="form-control" placeholder="' + I18n.t('placeholder_short_desc') + '"></div>';
         html += '</form>';
         html += '<div class="modal-footer-custom" style="margin-top:20px; text-align:right;">';

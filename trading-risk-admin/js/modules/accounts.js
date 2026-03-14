@@ -48,12 +48,12 @@ var AccountsModule = {
         // 统计卡片
         var totalAlerts = filteredAccounts.reduce(function (sum, a) { return sum + a.alert_count; }, 0);
         html += '<div class="grid grid-2" style="margin-bottom: var(--spacing-lg);">';
-        html += '<div class="stat-card"><div class="stat-icon">👥</div><div class="stat-value">' + filteredAccounts.length + '</div><div class="stat-label">' + I18n.t('total_accounts') + '</div></div>';
-        html += '<div class="stat-card warning"><div class="stat-icon">🔔</div><div class="stat-value">' + totalAlerts + '</div><div class="stat-label">' + I18n.t('total_alerts') + '</div></div>';
+        html += '<div class="stat-card"><div class="stat-icon"><i data-lucide="users"></i></div><div class="stat-value">' + filteredAccounts.length + '</div><div class="stat-label">' + I18n.t('total_accounts') + '</div></div>';
+        html += '<div class="stat-card warning"><div class="stat-icon"><i data-lucide="bell-ring"></i></div><div class="stat-value">' + totalAlerts + '</div><div class="stat-label">' + I18n.t('total_alerts') + '</div></div>';
         html += '</div>';
 
         // 账户表格
-        html += '<div class="card"><div class="card-header"><h3 class="card-title">👥 ' + I18n.t('trading_account_management') + '</h3></div>';
+        html += '<div class="card"><div class="card-header"><h3 class="card-title"><i data-lucide="users"></i> ' + I18n.t('trading_account_management') + '</h3></div>';
         html += '<div class="card-body" style="padding: 0;"><div class="table-container"><table class="table"><thead><tr>';
         html += '<th>' + I18n.t('account_id_header') + '</th>';
         html += '<th>' + I18n.t('company_header') + '</th>';

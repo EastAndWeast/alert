@@ -6,7 +6,7 @@ var RolesModule = {
         var canManage = Permissions.canManageRoles(currentUser);
 
         if (!canManage) {
-            return '<div class="empty-state"><div class="empty-state-icon">🔒</div><div class="empty-state-title">' + I18n.t('no_access') + '</div><div class="empty-state-desc">' + I18n.t('no_role_manage_permission') + '</div></div>';
+            return '<div class="empty-state"><div class="empty-state-icon"><i data-lucide="lock" style="width:48px;height:48px;"></i></div><div class="empty-state-title">' + I18n.t('no_access') + '</div><div class="empty-state-desc">' + I18n.t('no_role_manage_permission') + '</div></div>';
         }
 
         var roles = MockData.roles;
@@ -16,17 +16,17 @@ var RolesModule = {
         return '\
             <div class="grid grid-3" style="margin-bottom: var(--spacing-lg);">\
                 <div class="stat-card">\
-                    <div class="stat-icon">🔐</div>\
+                    <div class="stat-icon"><i data-lucide="shield"></i></div>\
                     <div class="stat-value">' + roles.length + '</div>\
                     <div class="stat-label">' + I18n.t('total_roles') + '</div>\
                 </div>\
                 <div class="stat-card info">\
-                    <div class="stat-icon">🔒</div>\
+                    <div class="stat-icon"><i data-lucide="lock"></i></div>\
                     <div class="stat-value">' + systemRoles.length + '</div>\
                     <div class="stat-label">' + I18n.t('system_roles') + '</div>\
                 </div>\
                 <div class="stat-card success">\
-                    <div class="stat-icon">✨</div>\
+                    <div class="stat-icon"><i data-lucide="sparkles"></i></div>\
                     <div class="stat-value">' + customRoles.length + '</div>\
                     <div class="stat-label">' + I18n.t('custom_roles') + '</div>\
                 </div>\
@@ -34,7 +34,7 @@ var RolesModule = {
             ' + this.renderPermissionList() + '\
             <div class="card">\
                 <div class="card-header">\
-                    <h3 class="card-title">🔐 ' + I18n.t('role_list') + '</h3>\
+                    <h3 class="card-title"><i data-lucide="shield"></i> ' + I18n.t('role_list') + '</h3>\
                     <button class="btn btn-primary" onclick="RolesModule.addRole()">+ ' + I18n.t('add_role') + '</button>\
                 </div>\
                 <div class="card-body" style="padding: 0;">\
@@ -64,7 +64,7 @@ var RolesModule = {
         return '\
             <div class="card" style="margin-bottom: var(--spacing-lg);">\
                 <div class="card-header">\
-                    <h3 class="card-title">📋 ' + I18n.t('available_perm_list') + '</h3>\
+                    <h3 class="card-title"><i data-lucide="clipboard-list"></i> ' + I18n.t('available_perm_list') + '</h3>\
                 </div>\
                 <div class="card-body">\
                     <div class="grid grid-5">\
@@ -383,7 +383,7 @@ var RolesModule = {
 
         App.showModal(I18n.t('confirm_delete'), '\
             <div style="text-align: center; padding: 20px 0;">\
-                <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>\
+                <div style="font-size: 48px; margin-bottom: 16px;"><i data-lucide="alert-triangle" style="width:48px;height:48px;"></i></div>\
                 <p style="font-size: 16px; margin-bottom: 8px;">' + I18n.t('confirm_delete_role_prefix') + ' <strong>' + (role.role_name || I18n.t(role.role_key)) + '</strong> ' + I18n.t('confirm_delete_role_suffix') + '</p>\
                 <p style="color: var(--text-muted);">' + I18n.t('action_irreversible') + '</p>\
             </div>\

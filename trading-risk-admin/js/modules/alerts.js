@@ -146,7 +146,7 @@ const AlertsModule = {
         var paged = filtered.slice(start, start + this.pageSize);
 
         return paged.map(function (alert) {
-            var typeInfo = self.ruleTypes[alert.rule_type] || { name: alert.rule_type, icon: '❓', color: 'secondary' };
+            var typeInfo = self.ruleTypes[alert.rule_type] || { name: alert.rule_type, icon: '<i data-lucide="help-circle"></i>', color: 'secondary' };
             var statusClass = alert.status === 'new' ? 'danger' : alert.status === 'reviewed' ? 'active' : 'warning';
             // 获取公司名称
             var source = MockData.dataSources.find(function (ds) { return ds.source_id === alert.source_id; });
@@ -364,7 +364,7 @@ const AlertsModule = {
         var alert = MockData.alerts.find(function (a) { return a.alert_id === alertId; });
         if (!alert) return;
 
-        var typeInfo = this.ruleTypes[alert.rule_type] || { name: alert.rule_type, icon: '❓' };
+        var typeInfo = this.ruleTypes[alert.rule_type] || { name: alert.rule_type, icon: '<i data-lucide="help-circle"></i>' };
         var d = alert.details || {};
         // 获取公司名称
         var source = MockData.dataSources.find(function (ds) { return ds.source_id === alert.source_id; });
@@ -386,7 +386,7 @@ const AlertsModule = {
         var html = '<div style="display: grid; gap: var(--spacing-lg); max-height: 70vh; overflow-y: auto; padding-right: 8px;">';
 
         // 基本信息区块
-        html += '<section> <h4 style="margin: 0 0 var(--spacing-md) 0; border-left: 4px solid var(--primary-color); padding-left: 8px;">ℹ️ ' + I18n.t('basic_info') + '</h4>';
+        html += '<section> <h4 style="margin: 0 0 var(--spacing-md) 0; border-left: 4px solid var(--primary-color); padding-left: 8px;"><i data-lucide="info" style="width:16px;height:16px;vertical-align:-3px;stroke:var(--color-info);"></i> ' + I18n.t('basic_info') + '</h4>';
         html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-sm); bg-color: var(--bg-body); padding: var(--spacing-md); border-radius: var(--radius-md);">';
         html += '<div class="param-item"><div class="param-label">' + I18n.t('alert_id_label') + '</div><div class="param-value">' + alert.alert_id + '</div></div>';
         html += '<div class="param-item"><div class="param-label">' + I18n.t('company_label') + '</div><div class="param-value">' + companyName + '</div></div>';

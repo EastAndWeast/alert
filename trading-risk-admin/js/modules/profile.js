@@ -10,7 +10,7 @@ var ProfileModule = {
                 <div class="grid grid-2">\
                     <div class="card">\
                         <div class="card-header">\
-                            <h3 class="card-title">👤 ' + I18n.t('basic_info') + '</h3>\
+                            <h3 class="card-title"><i data-lucide="user"></i> ' + I18n.t('basic_info') + '</h3>\
                         </div>\
                         <div class="card-body">\
                             <div class="profile-info-grid">\
@@ -39,7 +39,7 @@ var ProfileModule = {
                     </div>\
                     <div class="card">\
                         <div class="card-header">\
-                            <h3 class="card-title">🔐 ' + I18n.t('change_password') + '</h3>\
+                            <h3 class="card-title"><i data-lucide="lock"></i> ' + I18n.t('change_password') + '</h3>\
                         </div>\
                         <div class="card-body">\
                             <form id="passwordForm" onsubmit="ProfileModule.handlePasswordChange(event)">\

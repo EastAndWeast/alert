@@ -21,30 +21,30 @@ var DashboardModule = {
         return '\
             <div class="grid grid-4">\
                 <div class="stat-card danger">\
-                    <div class="stat-icon">🔔</div>\
+                    <div class="stat-icon"><i data-lucide="bell-ring"></i></div>\
                     <div class="stat-value">' + stats.today_alerts + '</div>\
                     <div class="stat-label">' + I18n.t('today_alerts') + '</div>\
                 </div>\
                 <div class="stat-card success">\
-                    <div class="stat-icon">⚙️</div>\
+                    <div class="stat-icon"><i data-lucide="cog"></i></div>\
                     <div class="stat-value">' + stats.active_rules + '</div>\
                     <div class="stat-label">' + I18n.t('active_rules') + '</div>\
                 </div>\
-                <div class="stat-card info">\
-                    <div class="stat-icon">👥</div>\
-                    <div class="stat-value">' + stats.monitored_accounts + '</div>\
-                    <div class="stat-label">' + I18n.t('monitored_accounts') + '</div>\
+                <div class="stat-card danger">\
+                    <div class="stat-icon"><i data-lucide="user-x"></i></div>\
+                    <div class="stat-value">' + stats.alerted_accounts + '</div>\
+                    <div class="stat-label">' + I18n.t('alerted_accounts') + '</div>\
                 </div>\
                 <div class="stat-card warning">\
-                    <div class="stat-icon">📈</div>\
-                    <div class="stat-value">' + stats.total_trades_today + '</div>\
-                    <div class="stat-label">' + I18n.t('today_trades') + '</div>\
+                    <div class="stat-icon"><i data-lucide="check-circle"></i></div>\
+                    <div class="stat-value">' + stats.alert_resolution_rate + '%</div>\
+                    <div class="stat-label">' + I18n.t('alert_resolution_rate') + '</div>\
                 </div>\
             </div>\
             <div class="grid grid-2" style="margin-top: var(--spacing-lg);">\
                 <div class="card">\
                     <div class="card-header">\
-                        <h3 class="card-title">📊 ' + I18n.t('alert_trend') + companyInfo + '</h3>\
+                        <h3 class="card-title"><i data-lucide="trending-up"></i> ' + I18n.t('alert_trend') + companyInfo + '</h3>\
                     </div>\
                     <div class="card-body">\
                         <div class="chart-container">\
@@ -54,7 +54,7 @@ var DashboardModule = {
                 </div>\
                 <div class="card">\
                     <div class="card-header">\
-                        <h3 class="card-title">🎯 ' + I18n.t('rule_dist') + '</h3>\
+                        <h3 class="card-title"><i data-lucide="target"></i> ' + I18n.t('rule_dist') + '</h3>\
                     </div>\
                     <div class="card-body">\
                         <div class="chart-container">\
@@ -66,7 +66,7 @@ var DashboardModule = {
             <div class="grid grid-2" style="margin-top: var(--spacing-lg);">\
                 <div class="card">\
                     <div class="card-header">\
-                        <h3 class="card-title">🔔 ' + I18n.t('latest_alerts') + '</h3>\
+                        <h3 class="card-title"><i data-lucide="bell"></i> ' + I18n.t('latest_alerts') + '</h3>\
                         <a href="#alerts" class="btn btn-sm btn-secondary">' + I18n.t('view_all') + '</a>\
                     </div>\
                     <div class="card-body" style="padding: 0;">\
@@ -88,7 +88,7 @@ var DashboardModule = {
                 </div>\
                 <div class="card">\
                     <div class="card-header">\
-                        <h3 class="card-title">📊 ' + I18n.t('platform_volume') + '</h3>\
+                        <h3 class="card-title"><i data-lucide="bar-chart-3"></i> ' + I18n.t('platform_volume') + '</h3>\
                     </div>\
                     <div class="card-body">\
                         <div class="chart-container">\

@@ -3,17 +3,17 @@
 const RulesModule = {
     // 规则类型映射
     ruleTypes: {
-        'large_trade_lots': { name: 'Large Trade (手数)', icon: '💰', color: 'primary' },
-        'large_trade_usd': { name: 'Large Trader (USD)', icon: '💵', color: 'success' },
-        'liquidity_trade': { name: 'Liquidity Trade', icon: '🌊', color: 'info' },
-        'scalping': { name: 'Scalping', icon: '⚡', color: 'warning' },
-        'exposure_alert': { name: 'Exposure Alert', icon: '📊', color: 'danger' },
-        'pricing': { name: 'Pricing', icon: '⏱️', color: 'secondary' },
-        'volatility': { name: 'Volatility', icon: '📈', color: 'warning' },
-        'nop_limit': { name: 'NOP Limit', icon: '📐', color: 'dark' },
-        'watch_list': { name: 'Watch List', icon: '👁️', color: 'primary' },
-        'reverse_positions': { name: 'Reverse Positions', icon: '🔀', color: 'warning' },
-        'deposit_withdrawal': { name: 'Deposit & Withdrawal', icon: '💳', color: 'success' }
+        'large_trade_lots': { name: 'Large Trade (手数)', icon: '<i data-lucide="banknote"></i>', color: 'primary' },
+        'large_trade_usd': { name: 'Large Trader (USD)', icon: '<i data-lucide="dollar-sign"></i>', color: 'success' },
+        'liquidity_trade': { name: 'Liquidity Trade', icon: '<i data-lucide="waves"></i>', color: 'info' },
+        'scalping': { name: 'Scalping', icon: '<i data-lucide="zap"></i>', color: 'warning' },
+        'exposure_alert': { name: 'Exposure Alert', icon: '<i data-lucide="bar-chart-3"></i>', color: 'danger' },
+        'pricing': { name: 'Pricing', icon: '<i data-lucide="clock"></i>', color: 'secondary' },
+        'volatility': { name: 'Volatility', icon: '<i data-lucide="trending-up"></i>', color: 'warning' },
+        'nop_limit': { name: 'NOP Limit', icon: '<i data-lucide="ruler"></i>', color: 'dark' },
+        'watch_list': { name: 'Watch List', icon: '<i data-lucide="eye"></i>', color: 'primary' },
+        'reverse_positions': { name: 'Reverse Positions', icon: '<i data-lucide="repeat"></i>', color: 'warning' },
+        'deposit_withdrawal': { name: 'Deposit & Withdrawal', icon: '<i data-lucide="credit-card"></i>', color: 'success' }
     },
 
     // 规则ID计数器
@@ -37,11 +37,11 @@ const RulesModule = {
         var html = '<div class="page-content">';
         html += '<div class="page-header">';
         html += '<div class="page-header-left">';
-        html += '<span class="rule-icon-large">' + typeInfo.icon + '</span>';
+        html += '<span class="rule-icon-large color-' + typeInfo.color + '">' + typeInfo.icon + '</span>';
         html += '<div><h2>' + I18n.t(ruleType) + '</h2><p class="text-muted">' + I18n.t(ruleType + '_desc') + '</p></div>';
         html += '</div>';
         if (!isReadOnly) {
-            html += '<button class="btn btn-primary" onclick="RulesModule.showAddRuleModal(\'' + ruleType + '\')"><span>➕</span> ' + I18n.t('add_rule') + '</button>';
+            html += '<button class="btn btn-primary" onclick="RulesModule.showAddRuleModal(\'' + ruleType + '\')"><i data-lucide="plus" style="width:14px;height:14px;vertical-align:-2px;"></i> ' + I18n.t('add_rule') + '</button>';
         }
         html += '</div>';
 
@@ -70,7 +70,7 @@ const RulesModule = {
         var html = '<div class="rule-card">';
         html += '<div class="rule-card-header">';
         html += '<div class="rule-title">';
-        html += '<span class="rule-icon">' + typeInfo.icon + '</span>';
+        html += '<span class="rule-icon color-' + typeInfo.color + '">' + typeInfo.icon + '</span>';
         html += '<span>' + I18n.t(rule.rule_type) + '</span>';
         html += '</div>';
         html += '<span class="status-badge ' + statusClass + '">' + statusText + '</span>';
@@ -84,7 +84,7 @@ const RulesModule = {
 
         html += '<div class="rule-card-footer">';
         html += '<div class="rule-stats">';
-        html += '<span class="stat-item">📊 ' + I18n.t('triggered') + ': ' + rule.triggered_count + ' ' + I18n.t('times') + '</span>';
+        html += '<span class="stat-item"><i data-lucide="bar-chart-3"></i> ' + I18n.t('triggered') + ': ' + rule.triggered_count + ' ' + I18n.t('times') + '</span>';
         html += '</div>';
         if (!isReadOnly) {
             html += '<div class="rule-actions">';
@@ -181,7 +181,7 @@ const RulesModule = {
 
     // 渲染无规则提示
     renderNoRules(ruleName) {
-        return '<div class="empty-state"><div class="empty-icon">📭</div><h3>' + I18n.t('no_rules_prefix') + ' ' + ruleName + ' ' + I18n.t('no_rules_suffix') + '</h3><p>' + I18n.t('click_to_add_rule') + '</p></div>';
+        return '<div class="empty-state"><div class="empty-icon"><i data-lucide="inbox" style="width:48px;height:48px;stroke:var(--text-muted);"></i></div><h3>' + I18n.t('no_rules_prefix') + ' ' + ruleName + ' ' + I18n.t('no_rules_suffix') + '</h3><p>' + I18n.t('click_to_add_rule') + '</p></div>';
     },
 
     // 渲染告警历史
@@ -193,7 +193,7 @@ const RulesModule = {
         }).slice(0, 5);
 
         var html = '<div class="section-card mt-4">';
-        html += '<div class="section-header"><h3>📋 ' + I18n.t('recent_alerts') + '</h3></div>';
+        html += '<div class="section-header"><h3><i data-lucide="clipboard-list"></i> ' + I18n.t('recent_alerts') + '</h3></div>';
         html += '<div class="section-body">';
 
         if (alerts.length === 0) {
@@ -459,7 +459,7 @@ const RulesModule = {
         var previewNoteId = ruleType + '-preview-note';
 
         html += '<div id="' + previewId + '" class="rule-preview" style="margin-top: 0; margin-bottom: 20px;">';
-        html += '  <div class="rule-preview-title">📋 ' + I18n.t('rule_preview_title') + '</div>';
+        html += '  <div class="rule-preview-title"><i data-lucide="clipboard-list" style="width:14px;height:14px;vertical-align:-2px;stroke:var(--color-info);"></i> ' + I18n.t('rule_preview_title') + '</div>';
         html += '  <div class="rule-preview-text" id="' + previewTextId + '"></div>';
         html += '  <div class="rule-preview-note" id="' + previewNoteId + '"></div>';
         html += '</div>';

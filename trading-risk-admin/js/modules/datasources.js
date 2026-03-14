@@ -13,29 +13,29 @@ var DatasourcesModule = {
         return '\
             <div class="grid grid-4" style="margin-bottom: var(--spacing-lg);">\
                 <div class="stat-card">\
-                    <div class="stat-icon">🔌</div>\
+                    <div class="stat-icon"><i data-lucide="plug"></i></div>\
                     <div class="stat-value">' + dataSources.length + '</div>\
                     <div class="stat-label">' + I18n.t('total_datasources') + '</div>\
                 </div>\
                 <div class="stat-card success">\
-                    <div class="stat-icon">✅</div>\
+                    <div class="stat-icon"><i data-lucide="check-circle"></i></div>\
                     <div class="stat-value">' + dataSources.filter(function (ds) { return ds.status === 'active'; }).length + '</div>\
                     <div class="stat-label">' + I18n.t('active_datasources') + '</div>\
                 </div>\
                 <div class="stat-card info">\
-                    <div class="stat-icon">📊</div>\
+                    <div class="stat-icon"><i data-lucide="monitor"></i></div>\
                     <div class="stat-value">' + dataSources.filter(function (ds) { return ds.platform_type === 'MT4'; }).length + '</div>\
                     <div class="stat-label">' + I18n.t('mt4_datasources') + '</div>\
                 </div>\
                 <div class="stat-card warning">\
-                    <div class="stat-icon">📈</div>\
+                    <div class="stat-icon"><i data-lucide="monitor"></i></div>\
                     <div class="stat-value">' + dataSources.filter(function (ds) { return ds.platform_type === 'MT5'; }).length + '</div>\
                     <div class="stat-label">' + I18n.t('mt5_datasources') + '</div>\
                 </div>\
             </div>\
             <div class="card">\
                 <div class="card-header">\
-                    <h3 class="card-title">🔌 ' + I18n.t('datasource_list') + '</h3>\
+                    <h3 class="card-title"><i data-lucide="plug"></i> ' + I18n.t('datasource_list') + '</h3>\
                     ' + (canManage ? '<button class="btn btn-primary" onclick="DatasourcesModule.addDatasource()">+ ' + I18n.t('add_datasource') + '</button>' : '') + '\
                 </div>\
                 <div class="card-body" style="padding: 0;">\
@@ -107,7 +107,7 @@ var DatasourcesModule = {
                 <select class="form-select">' + companyOptions + '</select>\
             </div>\
             <hr style="margin: var(--spacing-md) 0; border-color: var(--border-color);">\
-            <h4 style="margin-bottom: var(--spacing-md); color: var(--text-secondary);">🔗 ' + I18n.t('connection_config') + '</h4>\
+            <h4 style="margin-bottom: var(--spacing-md); color: var(--text-secondary);"><i data-lucide="link"></i> ' + I18n.t('connection_config') + '</h4>\
             <div class="form-group">\
                 <label class="form-label">' + I18n.t('ip_address_label') + '</label>\
                 <input type="text" class="form-input" placeholder="' + I18n.t('placeholder_ip') + '">\
@@ -146,7 +146,7 @@ var DatasourcesModule = {
                     </select>\
                 </div>\
                 <hr style="margin: var(--spacing-md) 0; border-color: var(--border-color);">\
-                <h4 style="margin-bottom: var(--spacing-md); color: var(--text-secondary);">🔗 连接配置</h4>\
+                <h4 style="margin-bottom: var(--spacing-md); color: var(--text-secondary);"><i data-lucide="link"></i> 连接配置</h4>\
                 <div class="form-group">\
                     <label class="form-label">IP 地址</label>\
                     <input type="text" class="form-input" value="' + (ds.ip || '') + '" placeholder="例如: 192.168.1.100">\

@@ -480,9 +480,193 @@ button {
 }
 
 .stat-icon {
-    font-size: 32px;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     margin-bottom: var(--spacing-md);
+    background: rgba(99, 102, 241, 0.15);
 }
+
+.stat-icon svg {
+    width: 24px;
+    height: 24px;
+    stroke: var(--color-primary);
+}
+
+.stat-card.danger .stat-icon {
+    background: rgba(239, 68, 68, 0.15);
+}
+
+.stat-card.danger .stat-icon svg {
+    stroke: #f87171;
+}
+
+.stat-card.success .stat-icon {
+    background: rgba(16, 185, 129, 0.15);
+}
+
+.stat-card.success .stat-icon svg {
+    stroke: #34d399;
+}
+
+.stat-card.warning .stat-icon {
+    background: rgba(245, 158, 11, 0.15);
+}
+
+.stat-card.warning .stat-icon svg {
+    stroke: #fbbf24;
+}
+
+.stat-card.info .stat-icon {
+    background: rgba(59, 130, 246, 0.15);
+}
+
+.stat-card.info .stat-icon svg {
+    stroke: #60a5fa;
+}
+
+/* 内容区 card-title 图标彩色 */
+.card-title svg {
+    width: 20px;
+    height: 20px;
+    stroke: var(--color-primary-light);
+    vertical-align: -4px;
+}
+
+/* section-header 图标 */
+.section-header svg {
+    width: 18px;
+    height: 18px;
+    stroke: var(--color-info);
+    vertical-align: -3px;
+}
+
+/* 规则类型大图标 */
+.rule-icon-large {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    background: rgba(99, 102, 241, 0.15);
+}
+
+.rule-icon-large svg {
+    width: 28px;
+    height: 28px;
+    stroke: var(--color-primary-light);
+}
+
+/* 行内 stat-item 图标 */
+.stat-item svg {
+    width: 14px;
+    height: 14px;
+    stroke: var(--color-info);
+    vertical-align: -2px;
+}
+
+/* 规则卡片内小图标 */
+.rule-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: rgba(99, 102, 241, 0.15);
+    flex-shrink: 0;
+}
+
+.rule-icon svg {
+    width: 18px;
+    height: 18px;
+    stroke: var(--color-primary-light);
+}
+
+/* 规则图标颜色变体 - 适用于 rule-icon 和 rule-icon-large */
+.rule-icon.color-primary, .rule-icon-large.color-primary {
+    background: rgba(99, 102, 241, 0.15);
+}
+.rule-icon.color-primary svg, .rule-icon-large.color-primary svg {
+    stroke: #818cf8;
+}
+
+.rule-icon.color-success, .rule-icon-large.color-success {
+    background: rgba(16, 185, 129, 0.15);
+}
+.rule-icon.color-success svg, .rule-icon-large.color-success svg {
+    stroke: #34d399;
+}
+
+.rule-icon.color-info, .rule-icon-large.color-info {
+    background: rgba(59, 130, 246, 0.15);
+}
+.rule-icon.color-info svg, .rule-icon-large.color-info svg {
+    stroke: #60a5fa;
+}
+
+.rule-icon.color-warning, .rule-icon-large.color-warning {
+    background: rgba(245, 158, 11, 0.15);
+}
+.rule-icon.color-warning svg, .rule-icon-large.color-warning svg {
+    stroke: #fbbf24;
+}
+
+.rule-icon.color-danger, .rule-icon-large.color-danger {
+    background: rgba(239, 68, 68, 0.15);
+}
+.rule-icon.color-danger svg, .rule-icon-large.color-danger svg {
+    stroke: #f87171;
+}
+
+.rule-icon.color-secondary, .rule-icon-large.color-secondary {
+    background: rgba(100, 116, 139, 0.15);
+}
+.rule-icon.color-secondary svg, .rule-icon-large.color-secondary svg {
+    stroke: #94a3b8;
+}
+
+.rule-icon.color-dark, .rule-icon-large.color-dark {
+    background: rgba(51, 65, 85, 0.15);
+}
+.rule-icon.color-dark svg, .rule-icon-large.color-dark svg {
+    stroke: #64748b;
+}
+
+/* 产品分类图标 */
+.category-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: rgba(99, 102, 241, 0.15);
+    flex-shrink: 0;
+}
+
+.category-icon svg {
+    width: 20px;
+    height: 20px;
+    stroke: #818cf8;
+}
+
+.category-icon.color-primary { background: rgba(99, 102, 241, 0.15); }
+.category-icon.color-primary svg { stroke: #818cf8; }
+.category-icon.color-success { background: rgba(16, 185, 129, 0.15); }
+.category-icon.color-success svg { stroke: #34d399; }
+.category-icon.color-info { background: rgba(59, 130, 246, 0.15); }
+.category-icon.color-info svg { stroke: #60a5fa; }
+.category-icon.color-warning { background: rgba(245, 158, 11, 0.15); }
+.category-icon.color-warning svg { stroke: #fbbf24; }
+.category-icon.color-danger { background: rgba(239, 68, 68, 0.15); }
+.category-icon.color-danger svg { stroke: #f87171; }
+.category-icon.color-dark { background: rgba(51, 65, 85, 0.15); }
+.category-icon.color-dark svg { stroke: #64748b; }
 
 .stat-value {
     font-size: 32px;

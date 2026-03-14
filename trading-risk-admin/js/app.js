@@ -35,6 +35,9 @@ var App = {
         if (switcher && MockData.currentUser) {
             switcher.value = MockData.currentUser.user_id;
         }
+
+        // 初始化 Lucide 图标
+        if (typeof lucide !== 'undefined') lucide.createIcons();
     },
 
     switchUser: function (userId) {
@@ -196,7 +199,7 @@ var App = {
         if (theme === 'light') {
             document.body.classList.add('light-theme');
             var btn = document.getElementById('themeToggle');
-            if (btn) btn.textContent = '☀️';
+            if (btn) { btn.innerHTML = '<i data-lucide="sun"></i>'; if (typeof lucide !== 'undefined') lucide.createIcons({nodes: [btn]}); }
         }
     },
 
@@ -204,16 +207,17 @@ var App = {
         var isLight = document.body.classList.toggle('light-theme');
         localStorage.setItem('theme', isLight ? 'light' : 'dark');
         var btn = document.getElementById('themeToggle');
-        if (btn) btn.textContent = isLight ? '☀️' : '🌙';
+        if (btn) { btn.innerHTML = isLight ? '<i data-lucide="sun"></i>' : '<i data-lucide="moon"></i>'; if (typeof lucide !== 'undefined') lucide.createIcons({nodes: [btn]}); }
     },
 
     showToast: function (type, message) {
         var container = document.getElementById('toastContainer');
-        var icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
+        var icons = { success: '<i data-lucide="check-circle" style="width:18px;height:18px;vertical-align:-3px;"></i>', error: '<i data-lucide="x-circle" style="width:18px;height:18px;vertical-align:-3px;"></i>', warning: '<i data-lucide="alert-triangle" style="width:18px;height:18px;vertical-align:-3px;"></i>', info: '<i data-lucide="info" style="width:18px;height:18px;vertical-align:-3px;"></i>' };
         var toast = document.createElement('div');
         toast.className = 'toast ' + type;
         toast.innerHTML = '<span class="toast-icon">' + icons[type] + '</span><span class="toast-message">' + message + '</span>';
         container.appendChild(toast);
+        if (typeof lucide !== 'undefined') lucide.createIcons();
         setTimeout(function () {
             toast.style.animation = 'slideOut 0.3s ease forwards';
             setTimeout(function () { toast.remove(); }, 300);

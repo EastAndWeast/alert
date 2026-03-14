@@ -65,12 +65,12 @@ const MockData = {
 
     // 产品大类定义 (动态管理)
     productCategories: [
-        { id: 'metals', name: 'Metals', icon: '🥇', description: '贵金属类产品 (XAUUSD, XAGUSD等)' },
-        { id: 'forex_major', name: 'Forex Major', icon: '💱', description: '主要货币对 (EURUSD, GBPUSD等)' },
-        { id: 'forex_minor', name: 'Forex Minor', icon: '💹', description: '次要货币对 (EURGBP, AUDJPY等)' },
-        { id: 'crypto', name: 'Crypto', icon: '₿', description: '加密货币 (BTCUSD, ETHUSD等)' },
-        { id: 'indices', name: 'Indices', icon: '📊', description: '股票指数 (US30, GER40等)' },
-        { id: 'energy', name: 'Energy', icon: '⛽', description: '能源类产品 (XTIUSD, XNGUSD等)' }
+        { id: 'metals', name: 'Metals', icon: '<i data-lucide="gem"></i>', description: '贵金属类产品 (XAUUSD, XAGUSD等)' },
+        { id: 'forex_major', name: 'Forex Major', icon: '<i data-lucide="arrow-left-right"></i>', description: '主要货币对 (EURUSD, GBPUSD等)' },
+        { id: 'forex_minor', name: 'Forex Minor', icon: '<i data-lucide="shuffle"></i>', description: '次要货币对 (EURGBP, AUDJPY等)' },
+        { id: 'crypto', name: 'Crypto', icon: '<i data-lucide="bitcoin"></i>', description: '加密货币 (BTCUSD, ETHUSD等)' },
+        { id: 'indices', name: 'Indices', icon: '<i data-lucide="bar-chart-3"></i>', description: '股票指数 (US30, GER40等)' },
+        { id: 'energy', name: 'Energy', icon: '<i data-lucide="flame"></i>', description: '能源类产品 (XTIUSD, XNGUSD等)' }
     ],
 
     addProductCategory: function (cat) {
@@ -253,11 +253,14 @@ const MockData = {
         const rules = this.filterBySource(this.rules, sourceIds);
         const newAlerts = alerts.filter(function (a) { return a.status === 'new'; }).length;
         const activeRules = rules.filter(function (r) { return r.enabled; }).length;
+        const alertedAccounts = new Set(alerts.filter(function (a) { return a.account_id !== 'SYSTEM'; }).map(function (a) { return a.account_id; })).size;
+        const reviewedAlerts = alerts.filter(function (a) { return a.status === 'reviewed'; }).length;
+        const alertResolutionRate = alerts.length > 0 ? Math.round(reviewedAlerts / alerts.length * 100) : 0;
         return {
             today_alerts: newAlerts,
             active_rules: activeRules,
-            monitored_accounts: accounts.length,
-            total_trades_today: 156,
+            alerted_accounts: alertedAccounts,
+            alert_resolution_rate: alertResolutionRate,
             alerts_by_type: {
                 large_trade_lots: alerts.filter(function (a) { return a.rule_type === 'large_trade_lots'; }).length,
                 large_trade_usd: alerts.filter(function (a) { return a.rule_type === 'large_trade_usd'; }).length,
@@ -364,16 +367,16 @@ const MockData = {
 
     // 权限定义
     permissionDefinitions: [
-        { key: 'view_dashboard', menu_key: 'dashboard', name: '查看仪表盘', menu: 'Dashboard', icon: '📊' },
-        { key: 'manage_rules', menu_key: 'rules_manage', name: '管理规则', menu: '规则管理', icon: '⚙️' },
-        { key: 'manage_products', menu_key: 'product_mapping', name: '管理产品映射', menu: '产品映射', icon: '📦' },
-        { key: 'view_alerts', menu_key: 'alert_records', name: '查看告警', menu: '告警记录', icon: '🔔' },
-        { key: 'manage_accounts', menu_key: 'account_management', name: '管理账户', menu: '账户管理', icon: '👥' },
-        { key: 'manage_companies', menu_key: 'company_management', name: '管理公司', menu: '公司管理', icon: '🏢' },
-        { key: 'manage_datasources', menu_key: 'datasource_management', name: '管理数据源', menu: '数据源管理', icon: '🔌' },
-        { key: 'manage_users', menu_key: 'user_management', name: '管理用户', menu: '用户管理', icon: '👤' },
-        { key: 'manage_roles', menu_key: 'role_management', name: '管理角色', menu: '角色管理', icon: '🔐' },
-        { key: 'manage_settings', menu_key: 'global_config', name: '管理配置', menu: '全局配置', icon: '🔧' }
+        { key: 'view_dashboard', menu_key: 'dashboard', name: '查看仪表盘', menu: 'Dashboard', icon: '<i data-lucide="layout-dashboard"></i>' },
+        { key: 'manage_rules', menu_key: 'rules_manage', name: '管理规则', menu: '规则管理', icon: '<i data-lucide="cog"></i>' },
+        { key: 'manage_products', menu_key: 'product_mapping', name: '管理产品映射', menu: '产品映射', icon: '<i data-lucide="package"></i>' },
+        { key: 'view_alerts', menu_key: 'alert_records', name: '查看告警', menu: '告警记录', icon: '<i data-lucide="bell"></i>' },
+        { key: 'manage_accounts', menu_key: 'account_management', name: '管理账户', menu: '账户管理', icon: '<i data-lucide="users"></i>' },
+        { key: 'manage_companies', menu_key: 'company_management', name: '管理公司', menu: '公司管理', icon: '<i data-lucide="building-2"></i>' },
+        { key: 'manage_datasources', menu_key: 'datasource_management', name: '管理数据源', menu: '数据源管理', icon: '<i data-lucide="plug"></i>' },
+        { key: 'manage_users', menu_key: 'user_management', name: '管理用户', menu: '用户管理', icon: '<i data-lucide="user"></i>' },
+        { key: 'manage_roles', menu_key: 'role_management', name: '管理角色', menu: '角色管理', icon: '<i data-lucide="lock"></i>' },
+        { key: 'manage_settings', menu_key: 'global_config', name: '管理配置', menu: '全局配置', icon: '<i data-lucide="wrench"></i>' }
     ],
 
     // 角色管理方法

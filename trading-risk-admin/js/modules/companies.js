@@ -4,30 +4,30 @@ var CompaniesModule = {
     render: function () {
         var user = MockData.currentUser;
         if (!Permissions.isSuperAdmin(user)) {
-            return '<div class="empty-state"><div class="empty-state-icon">🔒</div><div class="empty-state-title">' + I18n.t('no_access') + '</div><div class="empty-state-desc">' + I18n.t('superadmin_only_access') + '</div></div>';
+            return '<div class="empty-state"><div class="empty-state-icon"><i data-lucide="lock" style="width:48px;height:48px;"></i></div><div class="empty-state-title">' + I18n.t('no_access') + '</div><div class="empty-state-desc">' + I18n.t('superadmin_only_access') + '</div></div>';
         }
 
         return '\
             <div class="grid grid-3" style="margin-bottom: var(--spacing-lg);">\
                 <div class="stat-card">\
-                    <div class="stat-icon">🏢</div>\
+                    <div class="stat-icon"><i data-lucide="building-2"></i></div>\
                     <div class="stat-value">' + MockData.companies.length + '</div>\
                     <div class="stat-label">' + I18n.t('total_companies') + '</div>\
                 </div>\
                 <div class="stat-card success">\
-                    <div class="stat-icon">✅</div>\
+                    <div class="stat-icon"><i data-lucide="check-circle"></i></div>\
                     <div class="stat-value">' + MockData.companies.filter(function (c) { return c.status === 'active'; }).length + '</div>\
                     <div class="stat-label">' + I18n.t('active_companies') + '</div>\
                 </div>\
                 <div class="stat-card info">\
-                    <div class="stat-icon">🔌</div>\
+                    <div class="stat-icon"><i data-lucide="plug"></i></div>\
                     <div class="stat-value">' + MockData.dataSources.length + '</div>\
                     <div class="stat-label">' + I18n.t('total_datasources') + '</div>\
                 </div>\
             </div>\
             <div class="card">\
                 <div class="card-header">\
-                    <h3 class="card-title">🏢 ' + I18n.t('company_list') + '</h3>\
+                    <h3 class="card-title"><i data-lucide="building-2"></i> ' + I18n.t('company_list') + '</h3>\
                     <button class="btn btn-primary" onclick="CompaniesModule.addCompany()">+ ' + I18n.t('add_company') + '</button>\
                 </div>\
                 <div class="card-body" style="padding: 0;">\

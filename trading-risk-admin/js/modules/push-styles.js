@@ -43,10 +43,10 @@ const PushStylesModule = {
                 </div>
 
                 <div class="grid grid-2">
-                    ${this.renderPlatformCard('teams', '👥', 'platform_teams')}
-                    ${this.renderPlatformCard('lark', '🐦', 'platform_lark')}
-                    ${this.renderPlatformCard('telegram', '✈️', 'platform_telegram')}
-                    ${this.renderPlatformCard('slack', '💬', 'platform_slack')}
+                    ${this.renderPlatformCard('teams', '<i data-lucide="users" style="width:16px;height:16px;vertical-align:-2px;"></i>', 'platform_teams')}
+                    ${this.renderPlatformCard('lark', '<i data-lucide="bird" style="width:16px;height:16px;vertical-align:-2px;"></i>', 'platform_lark')}
+                    ${this.renderPlatformCard('telegram', '<i data-lucide="send" style="width:16px;height:16px;vertical-align:-2px;"></i>', 'platform_telegram')}
+                    ${this.renderPlatformCard('slack', '<i data-lucide="hash" style="width:16px;height:16px;vertical-align:-2px;"></i>', 'platform_slack')}
                 </div>
 
                 <div style="display: flex; justify-content: flex-end; gap: var(--spacing-md); margin-top: var(--spacing-xl);">

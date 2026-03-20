@@ -29,17 +29,17 @@ const AlertsModule = {
 
     // 告警类型映射
     ruleTypes: {
-        'large_trade_lots': { name: 'Large Trade (手数)', icon: '💰', color: 'primary' },
-        'large_trade_usd': { name: 'Large Trade (USD)', icon: '💵', color: 'success' },
-        'liquidity_trade': { name: 'Liquidity Trade', icon: '🌊', color: 'info' },
-        'scalping': { name: 'Scalping', icon: '⚡', color: 'warning' },
-        'exposure_alert': { name: 'Exposure Alert', icon: '📊', color: 'danger' },
-        'pricing': { name: 'Pricing', icon: '⏱️', color: 'secondary' },
-        'volatility': { name: 'Volatility', icon: '📈', color: 'warning' },
-        'nop_limit': { name: 'NOP Limit', icon: '📐', color: 'dark' },
-        'watch_list': { name: 'Watch List', icon: '👁️', color: 'primary' },
-        'reverse_positions': { name: 'Reverse Positions', icon: '🔀', color: 'warning' },
-        'deposit_withdrawal': { name: 'Deposit & Withdrawal', icon: '💳', color: 'success' }
+        'large_trade_lots': { name: 'Large Trade (手数)', icon: '<i data-lucide="coins" style="width:14px;height:14px;vertical-align:-2px;stroke:#818cf8"></i>', color: 'primary' },
+        'large_trade_usd': { name: 'Large Trade (USD)', icon: '<i data-lucide="dollar-sign" style="width:14px;height:14px;vertical-align:-2px;stroke:#34d399"></i>', color: 'success' },
+        'liquidity_trade': { name: 'Liquidity Trade', icon: '<i data-lucide="waves" style="width:14px;height:14px;vertical-align:-2px;stroke:#60a5fa"></i>', color: 'info' },
+        'scalping': { name: 'Scalping', icon: '<i data-lucide="zap" style="width:14px;height:14px;vertical-align:-2px;stroke:#fbbf24"></i>', color: 'warning' },
+        'exposure_alert': { name: 'Exposure Alert', icon: '<i data-lucide="activity" style="width:14px;height:14px;vertical-align:-2px;stroke:#f87171"></i>', color: 'danger' },
+        'pricing': { name: 'Pricing', icon: '<i data-lucide="timer" style="width:14px;height:14px;vertical-align:-2px;stroke:#94a3b8"></i>', color: 'secondary' },
+        'volatility': { name: 'Volatility', icon: '<i data-lucide="trending-up" style="width:14px;height:14px;vertical-align:-2px;stroke:#fbbf24"></i>', color: 'warning' },
+        'nop_limit': { name: 'NOP Limit', icon: '<i data-lucide="ruler" style="width:14px;height:14px;vertical-align:-2px;stroke:#64748b"></i>', color: 'dark' },
+        'watch_list': { name: 'Watch List', icon: '<i data-lucide="eye" style="width:14px;height:14px;vertical-align:-2px;stroke:#818cf8"></i>', color: 'primary' },
+        'reverse_positions': { name: 'Reverse Positions', icon: '<i data-lucide="arrow-left-right" style="width:14px;height:14px;vertical-align:-2px;stroke:#fbbf24"></i>', color: 'warning' },
+        'deposit_withdrawal': { name: 'Deposit & Withdrawal', icon: '<i data-lucide="credit-card" style="width:14px;height:14px;vertical-align:-2px;stroke:#34d399"></i>', color: 'success' }
     },
 
     render() {
@@ -212,10 +212,14 @@ const AlertsModule = {
             return parts.join(' | ');
         }
 
-        // 2. Large Trade (USD) - USD | 手数
+        // 2. Large Trade (USD) - USD | 手数 | 账户类型
         if (t === 'large_trade_usd') {
             var parts = ['$' + Utils.formatNumber(Math.abs(v))];
             if (d.lots) parts.push(d.lots + I18n.t('lot_unit'));
+            if (d.account_type) {
+                var typeLabel = d.account_type === 'cent' ? I18n.t('cent_account') : I18n.t('standard_account');
+                parts.push(typeLabel);
+            }
             return parts.join(' | ');
         }
 
@@ -310,7 +314,13 @@ const AlertsModule = {
 
         var t = alert.rule_type;
         if (t === 'large_trade_lots') return d.direction;
-        if (t === 'large_trade_usd') return d.lots + ' ' + I18n.t('unit_lots') + ' ' + d.account_currency;
+        if (t === 'large_trade_usd') {
+            var info = d.lots + ' ' + I18n.t('unit_lots') + ' ' + d.account_currency;
+            if (d.account_type) {
+                info += ' [' + (d.account_type === 'cent' ? I18n.t('cent_account') : I18n.t('standard_account')) + ']';
+            }
+            return info;
+        }
         if (t === 'liquidity_trade') return d.order_count + ' ' + I18n.t('unit_orders') + ' ' + d.direction;
         if (t === 'scalping') return I18n.t('profit_usd_min_label') + ' $' + d.profit_usd;
         if (t === 'exposure_alert') return d.currency + ' ' + d.direction;
@@ -364,88 +374,107 @@ const AlertsModule = {
         var alert = MockData.alerts.find(function (a) { return a.alert_id === alertId; });
         if (!alert) return;
 
-        var typeInfo = this.ruleTypes[alert.rule_type] || { name: alert.rule_type, icon: '<i data-lucide="help-circle"></i>' };
+        var typeInfo = this.ruleTypes[alert.rule_type] || { name: alert.rule_type, icon: '' };
         var d = alert.details || {};
-        // 获取公司名称
         var source = MockData.dataSources.find(function (ds) { return ds.source_id === alert.source_id; });
         var companyName = source ? Utils.getCompanyName(source.company_id) : '-';
-
-        // 1. 查找关联规则
+        var sourceName = source ? source.source_name : '-';
         var rule = MockData.rules.find(function (r) { return r.rule_id === alert.rule_id; });
 
-        // 2. 查找关联交易 (基于账户、产品、时间相近性)
-        var relatedTrades = MockData.trades.filter(function (t) {
-            // 匹配规则：同账户、同产品、且交易时间在告警触发时间附近（此处模拟匹配，可以放宽条件）
-            var accountMatch = t.account_id === alert.account_id;
-            var productMatch = t.product_code === alert.product || alert.product === 'N/A';
+        var TRADE_TYPES = ['large_trade_lots','large_trade_usd','liquidity_trade','scalping','reverse_positions','watch_list'];
+        var hasTrades = TRADE_TYPES.indexOf(alert.rule_type) > -1;
+        var trades = [];
+        if (hasTrades && alert.account_id !== 'SYSTEM') {
+            trades = MockData.trades.filter(function(t) {
+                if (!( t.account_id === alert.account_id)) return false;
+                if (alert.rule_type === 'scalping') return t.product_code === alert.product && t.trade_type === 'CLOSE';
+                if (['liquidity_trade','large_trade_lots','large_trade_usd'].indexOf(alert.rule_type) > -1) {
+                    var p = alert.product.split('.')[0];
+                    return t.product_code === alert.product || t.product_code.startsWith(p);
+                }
+                return true;
+            }).slice(0, 5);
+        }
 
-            // 简单逻辑：如果是出入金，关联所有该账户交易；如果是普通告警，关联该产品交易
-            return accountMatch && (productMatch || alert.rule_type === 'deposit_withdrawal');
-        }).slice(0, 3); // 仅展示前3笔
+        var o = '';
+        o += '<div style=\'display:grid;gap:var(--spacing-lg);max-height:70vh;overflow-y:auto;padding-right:8px;\'>';
+        o += '<div class=\'trigger-value-highlight\'>';
+        o += '<div class=\'trigger-label\'>' + I18n.t('triggered_value_label') + '</div>';
+        o += '<div class=\'trigger-data\'>' + this.formatTriggerValue(alert) + '</div>';
+        o += '<div style=\'font-size:13px;color:var(--text-muted);margin-top:4px;\'>' + this.formatDetails(alert) + '</div>';
+        o += '</div>';
 
-        var html = '<div style="display: grid; gap: var(--spacing-lg); max-height: 70vh; overflow-y: auto; padding-right: 8px;">';
+        o += '<section>';
+        o += '<h4 style=\'margin:0 0 8px;border-left:4px solid var(--primary-color);padding-left:8px;\'><i data-lucide=\'user\' style=\'width:14px;height:14px;vertical-align:-2px;stroke:var(--color-info);\'></i> ' + I18n.t('customer_info') + '</h4>';
+        o += '<div style=\'display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;\'>';
+        o += '<div class=\'param-item\'><div class=\'param-label\'>' + I18n.t('account_id_label') + '</div><div class=\'param-value\'><code>' + alert.account_id + '</code></div></div>';
+        o += '<div class=\'param-item\'><div class=\'param-label\'>' + I18n.t('company_label') + '</div><div class=\'param-value\'>' + companyName + '</div></div>';
+        o += '<div class=\'param-item\'><div class=\'param-label\'>' + I18n.t('platform_label') + '</div><div class=\'param-value\'><span class=\'badge badge-' + (alert.platform === 'MT4' ? 'primary' : 'success') + '\'>' + alert.platform + '</span></div></div>';
+        o += '<div class=\'param-item\'><div class=\'param-label\'>' + I18n.t('product_label') + '</div><div class=\'param-value\'><strong>' + alert.product + '</strong></div></div>';
+        o += '<div class=\'param-item\'><div class=\'param-label\'>' + I18n.t('datasource_label') + '</div><div class=\'param-value\'>' + sourceName + '</div></div>';
+        var gt = trades.find(function(t){ return t.group_name; });
+        if (gt) o += '<div class=\'param-item\'><div class=\'param-label\'>Group</div><div class=\'param-value\' style=\'font-size:11px;font-family:monospace;\'>' + gt.group_name + '</div></div>';
+        o += '<div class=\'param-item\'><div class=\'param-label\'>' + I18n.t('trigger_time_label') + '</div><div class=\'param-value\'>' + alert.trigger_time + '</div></div>';
+        o += '<div class=\'param-item\'><div class=\'param-label\'>ID</div><div class=\'param-value\'><code style=\'font-size:11px;\'>' + alert.alert_id + '</code></div></div>';
+        o += '</div></section>';
 
-        // 基本信息区块
-        html += '<section> <h4 style="margin: 0 0 var(--spacing-md) 0; border-left: 4px solid var(--primary-color); padding-left: 8px;"><i data-lucide="info" style="width:16px;height:16px;vertical-align:-3px;stroke:var(--color-info);"></i> ' + I18n.t('basic_info') + '</h4>';
-        html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-sm); bg-color: var(--bg-body); padding: var(--spacing-md); border-radius: var(--radius-md);">';
-        html += '<div class="param-item"><div class="param-label">' + I18n.t('alert_id_label') + '</div><div class="param-value">' + alert.alert_id + '</div></div>';
-        html += '<div class="param-item"><div class="param-label">' + I18n.t('company_label') + '</div><div class="param-value">' + companyName + '</div></div>';
-        html += '<div class="param-item"><div class="param-label">' + I18n.t('rule_type_label') + '</div><div class="param-value">' + typeInfo.icon + ' ' + I18n.t(alert.rule_type) + '</div></div>';
-        html += '<div class="param-item"><div class="param-label">' + I18n.t('trigger_time_label') + '</div><div class="param-value">' + alert.trigger_time + '</div></div>';
-        html += '<div class="param-item"><div class="param-label">' + I18n.t('account_id_label') + '</div><div class="param-value">' + alert.account_id + ' / ' + alert.platform + '</div></div>';
-        html += '<div class="param-item"><div class="param-label">' + I18n.t('product_label') + '</div><div class="param-value">' + alert.product + '</div></div>';
-        html += '</div></section>';
-
-        // 触发值高亮
-        html += '<div style="background: var(--danger-light); padding: var(--spacing-md); border-radius: var(--radius-md); border-left: 4px solid var(--danger-color);">';
-        html += '<div style="font-size: 12px; color: var(--danger-color); font-weight: 600; text-transform: uppercase;">' + I18n.t('triggered_value_label') + '</div>';
-        html += '<div style="font-size: 24px; font-weight: 800; color: var(--danger-color);">' + this.formatTriggerValue(alert) + '</div>';
-        html += '<div style="font-size: 13px; color: var(--text-muted);">' + this.formatDetails(alert) + '</div>';
-        html += '</div>';
-
-        // 触发规则区块
         if (rule) {
-            html += '<section> <h4 style="margin: var(--spacing-md) 0; border-left: 4px solid var(--warning-color); padding-left: 8px;">⚙️ ' + I18n.t('triggered_rule_details') + '</h4>';
-            html += '<div style="background: var(--card-bg); border: 1px solid var(--border-color); padding: var(--spacing-md); border-radius: var(--radius-md);">';
-            html += '<div style="font-weight: 600; margin-bottom: 4px;">' + rule.name + '</div>';
-            html += '<div style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">' + rule.description + '</div>';
-
-            // 渲染规则核心参数
-            html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 13px;">';
+            o += '<section>';
+            o += '<h4 style=\'margin:0 0 8px;border-left:4px solid var(--color-warning);padding-left:8px;\'><i data-lucide=\'settings\' style=\'width:14px;height:14px;vertical-align:-2px;stroke:var(--color-warning);\'></i> ' + I18n.t('triggered_rule_details') + '</h4>';
+            o += '<div style=\'background:var(--card-bg);border:1px solid var(--border-color);padding:var(--spacing-md);border-radius:6px;\'>';
+            o += '<div style=\'font-weight:600;margin-bottom:2px;\'>' + typeInfo.icon + ' ' + rule.name + '</div>';
+            o += '<div style=\'font-size:12px;color:var(--text-muted);margin-bottom:10px;\'>' + rule.description + '</div>';
+            o += '<div style=\'display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px;\'>';
             if (typeof RulesModule !== 'undefined') {
-                html += RulesModule.renderRuleParams(rule, alert.rule_type);
+                o += RulesModule.renderRuleParams(rule, alert.rule_type);
             } else {
-                for (var key in rule.parameters) {
-                    var val = rule.parameters[key];
-                    if (Array.isArray(val)) val = val.join(', ') || '全部';
-                    html += '<div><strong>' + key + ':</strong> ' + val + '</div>';
+                for (var k in rule.parameters) {
+                    var v = rule.parameters[k];
+                    if (Array.isArray(v)) v = v.join(', ') || I18n.t('all');
+                    o += '<div class=\'param-item\'><div class=\'param-label\'>' + k + '</div><div class=\'param-value\'>' + v + '</div></div>';
                 }
             }
-            html += '</div></div></section>';
+            o += '</div></div></section>';
         }
 
-        // 关联交易区块
-        if (relatedTrades.length > 0) {
-            html += '<section> <h4 style="margin: var(--spacing-md) 0; border-left: 4px solid var(--success-color); padding-left: 8px;">🤝 ' + I18n.t('related_trades') + '</h4>';
-            html += '<div class="table-container" style="border: 1px solid var(--border-color); border-radius: var(--radius-md);">';
-            html += '<table class="table" style="font-size: 12px;"><thead><tr><th>' + I18n.t('trade_id_header') + '</th><th>' + I18n.t('product_header') + '</th><th>' + I18n.t('lots_header') + '</th><th>' + I18n.t('open_time_header') + '</th><th>' + I18n.t('profit_usd_header') + '</th></tr></thead><tbody>';
-            relatedTrades.forEach(function (t) {
-                html += '<tr>';
-                html += '<td><code>' + t.trade_id + '</code></td>';
-                html += '<td>' + t.product_code + '</td>';
-                html += '<td>' + t.volume_lot + '</td>';
-                html += '<td>' + t.open_time + '</td>';
-                html += '<td>' + (t.deal_usd > 0 ? '+' : '') + Utils.formatNumber(t.deal_usd) + '</td>';
-                html += '</tr>';
-            });
-            html += '</tbody></table></div></section>';
+        if (hasTrades) {
+            o += '<section>';
+            o += '<h4 style=\'margin:0 0 8px;border-left:4px solid var(--success-color);padding-left:8px;\'><i data-lucide=\'list\' style=\'width:14px;height:14px;vertical-align:-2px;stroke:var(--success-color);\'></i> ' + I18n.t('related_trades') + '</h4>';
+            if (trades.length === 0) {
+                o += '<div style=\'padding:16px;text-align:center;color:var(--text-muted);font-size:13px;border:1px dashed var(--border-color);border-radius:6px;\'>' + I18n.t('no_related_trades') + '</div>';
+            } else {
+                o += '<div class=\'table-container\' style=\'border:1px solid var(--border-color);border-radius:6px;\'>';
+                o += '<table class=\'table\' style=\'font-size:12px;\'><thead><tr>';
+                o += '<th>' + I18n.t('trade_id_header') + '</th><th>' + I18n.t('trade_type_header') + '</th><th>' + I18n.t('direction_header') + '</th><th>' + I18n.t('lots_header') + '</th><th>' + I18n.t('open_price_header') + '</th><th>' + I18n.t('close_price_header') + '</th><th>' + I18n.t('holding_time_header') + '</th><th>' + I18n.t('profit_usd_header') + '</th>';
+                o += '</tr></thead><tbody>';
+                trades.forEach(function(t) {
+                    var dc = t.direction==='BUY'?'#22c55e':'#ef4444';
+                    var db = t.direction==='BUY'?'rgba(34,197,94,0.12)':'rgba(239,68,68,0.12)';
+                    var tc = t.trade_type==='OPEN'?'#818cf8':'#94a3b8';
+                    var tb = t.trade_type==='OPEN'?'rgba(129,140,248,0.12)':'rgba(148,163,184,0.12)';
+                    var hs = t.holding_seconds;
+                    var hstr = hs==null?'-':(hs<60?hs+'s':hs<3600?Math.floor(hs/60)+'m'+(hs%60)+'s':Math.floor(hs/3600)+'h'+Math.floor((hs%3600)/60)+'m');
+                    var pnl = t.deal_usd!=null?((t.deal_usd>=0?'+$':'-$')+Utils.formatNumber(Math.abs(t.deal_usd))):'-';
+                    var pc = t.deal_usd!=null?(t.deal_usd>=0?'#22c55e':'#ef4444'):'';
+                    o += '<tr>';
+                    o += '<td><code style=\'font-size:11px;\'>' + t.trade_id + '</code></td>';
+                    o += '<td><span style=\'padding:1px 6px;border-radius:4px;background:'+tb+';color:'+tc+';font-weight:600;font-size:11px;\'>' + (t.trade_type||'-') + '</span></td>';
+                    o += '<td><span style=\'padding:2px 8px;border-radius:4px;background:'+db+';color:'+dc+';font-weight:700;font-size:12px;\'>' + (t.direction||'-') + '</span></td>';
+                    o += '<td><strong>' + t.volume_lot + '</strong></td>';
+                    o += '<td>' + (t.open_price!=null?t.open_price:'-') + '</td>';
+                    o += '<td>' + (t.close_price!=null?t.close_price:'<span style=\'color:var(--text-muted)\'>持仓中</span>') + '</td>';
+                    o += '<td>' + hstr + '</td>';
+                    o += '<td style=\'color:'+pc+';font-weight:600;\'>' + pnl + '</td>';
+                    o += '</tr>';
+                });
+                o += '</tbody></table></div>';
+            }
+            o += '</section>';
         }
 
-        html += '</div>';
-
-        App.showModal(I18n.t('alert_detail_title') + ' - ' + alert.alert_id, html);
+        o += '</div>';
+        App.showModal(I18n.t('alert_detail_title') + ' - ' + alert.alert_id, o);
     },
-
     exportData() {
         var alerts = this.getFilteredAlerts();
         var csv = 'alert_id,company,rule_type,platform,account_id,product,trigger_value,trigger_time,status\n';

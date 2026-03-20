@@ -63,7 +63,7 @@ var DashboardModule = {
                     </div>\
                 </div>\
             </div>\
-            <div class="grid grid-2" style="margin-top: var(--spacing-lg);">\
+            <div style="margin-top: var(--spacing-lg);">\
                 <div class="card">\
                     <div class="card-header">\
                         <h3 class="card-title"><i data-lucide="bell"></i> ' + I18n.t('latest_alerts') + '</h3>\
@@ -77,38 +77,35 @@ var DashboardModule = {
                                         <th>' + I18n.t('rule_type_header') + '</th>\
                                         <th>' + I18n.t('datasource_header') + '</th>\
                                         <th>' + I18n.t('account_header') + '</th>\
+                                        <th>' + I18n.t('product_header') + '</th>\
+                                        <th>' + I18n.t('trigger_value_header') + '</th>\
                                         <th>' + I18n.t('time_header') + '</th>\
                                         <th>' + I18n.t('status_header') + '</th>\
                                     </tr>\
                                 </thead>\
-                                <tbody>' + this.renderAlertRows(alerts.slice(0, 5)) + '</tbody>\
+                                <tbody>' + this.renderAlertRows(alerts.slice(0, 8)) + '</tbody>\
                             </table>\
                         </div>\
                     </div>\
                 </div>\
-                <div class="card">\
-                    <div class="card-header">\
-                        <h3 class="card-title"><i data-lucide="bar-chart-3"></i> ' + I18n.t('platform_volume') + '</h3>\
-                    </div>\
-                    <div class="card-body">\
-                        <div class="chart-container">\
-                            <canvas id="platformChart"></canvas>\
-                        </div>\
-                    </div>\
-                </div>\
-            </div>';
+            </div>';;
     },
 
     renderAlertRows: function (alerts) {
         if (alerts.length === 0) {
-            return '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">' + I18n.t('no_alerts') + '</td></tr>';
+            return '<tr><td colspan="7" style="text-align: center; color: var(--text-muted);">' + I18n.t('no_alerts') + '</td></tr>';
         }
         return alerts.map(function (alert) {
+            var typeInfo = AlertsModule && AlertsModule.ruleTypes[alert.rule_type];
+            var iconHtml = typeInfo ? typeInfo.icon + ' ' : '';
+            var triggerVal = AlertsModule ? AlertsModule.formatTriggerValue(alert) : (alert.trigger_value || '-');
             return '\
                 <tr>\
-                    <td><span class="badge badge-info">' + I18n.t(alert.rule_type) + '</span></td>\
+                    <td><span class="badge badge-' + (typeInfo ? typeInfo.color : 'info') + '">' + iconHtml + I18n.t(alert.rule_type) + '</span></td>\
                     <td>' + Utils.getSourceName(alert.source_id) + '</td>\
                     <td>' + alert.account_id + '</td>\
+                    <td>' + (alert.product || '-') + '</td>\
+                    <td><strong>' + triggerVal + '</strong></td>\
                     <td>' + alert.trigger_time.split(' ')[1] + '</td>\
                     <td><span class="status-dot ' + (alert.status === 'new' ? 'danger' : 'active') + '"></span>' + I18n.t('status_' + alert.status) + '</td>\
                 </tr>';

@@ -34,12 +34,24 @@ const MockData = {
 
     // 交易数据
     trades: [
-        { trade_id: 'T001', source_id: 'DS001', platform: 'MT4', account_id: 'ACC001', account_currency: 'USD', product_code: 'EURUSD', product_category: 'Forex Major', volume_lot: 5.0, open_time: '2024-01-15 10:30:00', close_time: '2024-01-15 10:35:00', deal_usd: 150000 },
-        { trade_id: 'T002', source_id: 'DS002', platform: 'MT5', account_id: 'ACC002', account_currency: 'EUR', product_code: 'GBPUSD', product_category: 'Forex Major', volume_lot: 2.5, open_time: '2024-01-15 11:00:00', close_time: '2024-01-15 11:02:30', deal_usd: 85000 },
-        { trade_id: 'T003', source_id: 'DS001', platform: 'MT4', account_id: 'ACC003', account_currency: 'JPY', product_code: 'USDJPY', product_category: 'Forex Major', volume_lot: 10.0, open_time: '2024-01-15 12:00:00', close_time: '2024-01-15 12:00:45', deal_usd: 250000 },
-        { trade_id: 'T004', source_id: 'DS002', platform: 'MT5', account_id: 'ACC001', account_currency: 'USD', product_code: 'XAUUSD', product_category: 'Commodities', volume_lot: 3.0, open_time: '2024-01-15 13:30:00', close_time: '2024-01-15 14:15:00', deal_usd: 180000 },
-        { trade_id: 'T005', source_id: 'DS003', platform: 'MT5', account_id: 'ACC004', account_currency: 'GBP', product_code: 'EURUSD', product_category: 'Forex Major', volume_lot: 1.0, open_time: '2024-01-15 14:00:00', close_time: '2024-01-15 14:00:25', deal_usd: 45000 },
-        { trade_id: 'T006', source_id: 'DS003', platform: 'MT5', account_id: 'ACC005', account_currency: 'USD', product_code: 'BTCUSD', product_category: 'Crypto', volume_lot: 0.5, open_time: '2024-01-15 15:00:00', close_time: '2024-01-15 15:30:00', deal_usd: 320000 }
+        // ACC001 / MT4 - Large Trade Lots & Large Trade USD 相关
+        { trade_id: 'T001', source_id: 'DS001', platform: 'MT4', account_id: 'ACC001', group_name: 'real\\standard\\gold', account_currency: 'USD', product_code: 'XAUUSD', product_category: 'Metals', direction: 'BUY', trade_type: 'OPEN', volume_lot: 8.5, open_price: 2010.50, close_price: null, open_time: '2024-01-15 10:30:00', close_time: null, holding_seconds: null, deal_usd: 180000, leverage: 100 },
+        { trade_id: 'T002', source_id: 'DS001', platform: 'MT4', account_id: 'ACC001', group_name: 'real\\standard\\gold', account_currency: 'USD', product_code: 'XAUUSD', product_category: 'Metals', direction: 'BUY', trade_type: 'CLOSE', volume_lot: 5.0, open_price: 1998.20, close_price: 2011.80, open_time: '2024-01-14 09:20:00', close_time: '2024-01-15 10:28:00', holding_seconds: 90480, deal_usd: 150000, leverage: 100 },
+        // 12345678 / MT4 - Large Trade USD / Liquidity Trade 相关
+        { trade_id: 'T003', source_id: 'DS001', platform: 'MT4', account_id: '12345678', group_name: 'real\\standard\\fx', account_currency: 'USD', product_code: 'EURUSD', product_category: 'Forex Major', direction: 'SELL', trade_type: 'OPEN', volume_lot: 2.5, open_price: 1.08720, close_price: null, open_time: '2024-01-15 09:45:30', close_time: null, holding_seconds: null, deal_usd: 125000, leverage: 200 },
+        { trade_id: 'T004', source_id: 'DS001', platform: 'MT4', account_id: '12345678', group_name: 'real\\standard\\fx', account_currency: 'USD', product_code: 'XAUUSD', product_category: 'Metals', direction: 'BUY', trade_type: 'OPEN', volume_lot: 1.5, open_price: 2009.00, close_price: null, open_time: '2024-01-15 11:28:20', close_time: null, holding_seconds: null, deal_usd: 32000, leverage: 100 },
+        { trade_id: 'T005', source_id: 'DS001', platform: 'MT4', account_id: '12345678', group_name: 'real\\standard\\fx', account_currency: 'USD', product_code: 'XAUUSD', product_category: 'Metals', direction: 'BUY', trade_type: 'OPEN', volume_lot: 2.0, open_price: 2008.80, close_price: null, open_time: '2024-01-15 11:29:05', close_time: null, holding_seconds: null, deal_usd: 42000, leverage: 100 },
+        { trade_id: 'T006', source_id: 'DS001', platform: 'MT4', account_id: '12345678', group_name: 'real\\standard\\fx', account_currency: 'USD', product_code: 'XAUUSD', product_category: 'Metals', direction: 'BUY', trade_type: 'OPEN', volume_lot: 3.0, open_price: 2009.50, close_price: null, open_time: '2024-01-15 11:29:45', close_time: null, holding_seconds: null, deal_usd: 63000, leverage: 100 },
+        // 88888888 / MT4 - Scalping 相关（超短线）
+        { trade_id: 'T007', source_id: 'DS001', platform: 'MT4', account_id: '88888888', group_name: 'real\\standard\\fx', account_currency: 'USD', product_code: 'EURUSD', product_category: 'Forex Major', direction: 'BUY', trade_type: 'CLOSE', volume_lot: 2.0, open_price: 1.08650, close_price: 1.08693, open_time: '2024-01-15 10:00:10', close_time: '2024-01-15 10:00:45', holding_seconds: 35, deal_usd: 850, leverage: 500 },
+        { trade_id: 'T008', source_id: 'DS001', platform: 'MT4', account_id: '88888888', group_name: 'real\\standard\\fx', account_currency: 'USD', product_code: 'EURUSD', product_category: 'Forex Major', direction: 'SELL', trade_type: 'CLOSE', volume_lot: 1.5, open_price: 1.08710, close_price: 1.08685, open_time: '2024-01-15 09:55:00', close_time: '2024-01-15 09:55:28', holding_seconds: 28, deal_usd: 375, leverage: 500 },
+        // 66666666 / MT5 - Large Trade USD (美分账户) 相关
+        { trade_id: 'T009', source_id: 'DS002', platform: 'MT5', account_id: '66666666', group_name: 'real\\cent\\xauusd', account_currency: 'USC', product_code: 'XAUUSD.m', product_category: 'Metals', direction: 'BUY', trade_type: 'OPEN', volume_lot: 1.0, open_price: 2011.20, close_price: null, open_time: '2024-01-15 10:55:18', close_time: null, holding_seconds: null, deal_usd: 5500, leverage: 100 },
+        // 用于 reverse_positions - 平仓后反向开仓
+        { trade_id: 'T010', source_id: 'DS001', platform: 'MT4', account_id: 'ACC003', group_name: 'real\\standard\\gold', account_currency: 'USD', product_code: 'XAUUSD', product_category: 'Metals', direction: 'BUY', trade_type: 'CLOSE', volume_lot: 3.0, open_price: 2005.00, close_price: 2018.50, open_time: '2024-01-15 08:00:00', close_time: '2024-01-15 14:05:00', holding_seconds: 22500, deal_usd: 40500, leverage: 100 },
+        { trade_id: 'T011', source_id: 'DS001', platform: 'MT4', account_id: 'ACC003', group_name: 'real\\standard\\gold', account_currency: 'USD', product_code: 'XAUUSD', product_category: 'Metals', direction: 'SELL', trade_type: 'OPEN', volume_lot: 3.5, open_price: 2018.00, close_price: null, open_time: '2024-01-15 14:08:00', close_time: null, holding_seconds: null, deal_usd: 70000, leverage: 100 },
+        // 用于 watch_list / 通用
+        { trade_id: 'T012', source_id: 'DS002', platform: 'MT5', account_id: 'ACC002', group_name: 'real\\standard\\fx', account_currency: 'EUR', product_code: 'GBPUSD', product_category: 'Forex Major', direction: 'SELL', trade_type: 'CLOSE', volume_lot: 2.5, open_price: 1.27350, close_price: 1.27095, open_time: '2024-01-15 11:00:00', close_time: '2024-01-15 11:02:30', holding_seconds: 150, deal_usd: 85000, leverage: 200 }
     ],
 
     // 产品映射
@@ -107,8 +119,8 @@ const MockData = {
         { rule_id: 'R003', source_id: 'DS003', rule_type: 'large_trade_lots', name: 'Large Trade (手数)', description: '监控单笔开仓手数超过阈值', icon: '💰', enabled: true, parameters: { lot_threshold: 1.0, symbol_filter: ['BTCUSD'], ignore_demo: false, white_list: [] }, trigger_action: 'alert', triggered_count: 18 },
 
         // 2. Large Trade (USD价值) - 按USD等值金额监控
-        { rule_id: 'R010', source_id: 'DS001', rule_type: 'large_trade_usd', name: 'Large Trader (USD)', description: '监控单笔开仓USD等值金额超过阈值', icon: '💵', enabled: true, parameters: { usd_value_threshold: 50000.0, cent_account_groups: ['*CENT*', '*MICRO*'], symbol_filter: ['XAUUSD', 'EURUSD'] }, trigger_action: 'alert', triggered_count: 15 },
-        { rule_id: 'R011', source_id: 'DS003', rule_type: 'large_trade_usd', name: 'Large Trader (USD)', description: '监控单笔开仓USD等值金额超过阈值', icon: '💵', enabled: true, parameters: { usd_value_threshold: 100000.0, cent_account_groups: [], symbol_filter: [] }, trigger_action: 'alert', triggered_count: 8 },
+        { rule_id: 'R010', source_id: 'DS001', rule_type: 'large_trade_usd', name: 'Large Trader (USD)', description: '监控单笔开仓USD等值金额超过阈值', icon: '💵', enabled: true, parameters: { usd_value_threshold: 50000.0, cent_enabled: true, cent_account_groups: ['*CENT*', '*MICRO*'], cent_threshold: 500.0, cent_symbol_filter: ['XAUUSD.m', 'EURUSD.m'], symbol_filter: ['XAUUSD', 'EURUSD'] }, trigger_action: 'alert', triggered_count: 15 },
+        { rule_id: 'R011', source_id: 'DS003', rule_type: 'large_trade_usd', name: 'Large Trader (USD)', description: '监控单笔开仓USD等值金额超过阈值', icon: '💵', enabled: true, parameters: { usd_value_threshold: 100000.0, cent_enabled: false, cent_account_groups: [], cent_threshold: 1000.0, cent_symbol_filter: [], symbol_filter: [] }, trigger_action: 'alert', triggered_count: 8 },
 
         // 3. Liquidity Trade - 拆单检测
         { rule_id: 'R020', source_id: 'DS001', rule_type: 'liquidity_trade', name: 'Liquidity Trade', description: '监控短时间内多笔小单消耗市场深度', icon: '🌊', enabled: true, parameters: { time_window: 60, min_order_count: 2, total_lot_threshold: 10.0, monitoring_scope: ['Metals'], aggregation_logic: 'BY_CATEGORY' }, trigger_action: 'alert', triggered_count: 8 },
@@ -153,8 +165,8 @@ const MockData = {
         { alert_id: 'A003', source_id: 'DS003', rule_type: 'large_trade_lots', rule_id: 'R003', account_id: '99999999', product: 'BTCUSD', trigger_time: '2024-01-15 14:20:05', trigger_value: 2.5, status: 'new', platform: 'MT5', details: { direction: 'BUY', threshold: 1.0 } },
 
         // 2. Large Trade (USD)
-        { alert_id: 'A010', source_id: 'DS001', rule_type: 'large_trade_usd', rule_id: 'R010', account_id: '12345678', product: 'EURUSD', trigger_time: '2024-01-15 09:45:30', trigger_value: 125000, status: 'new', platform: 'MT4', details: { lots: 2.5, account_currency: 'USD', rate_used: 1.0 } },
-        { alert_id: 'A011', source_id: 'DS002', rule_type: 'large_trade_usd', rule_id: 'R011', account_id: '66666666', product: 'XAUUSD', trigger_time: '2024-01-15 10:55:18', trigger_value: 280000, status: 'reviewed', platform: 'MT5', details: { lots: 1.5, account_currency: 'EUR', rate_used: 1.08 } },
+        { alert_id: 'A010', source_id: 'DS001', rule_type: 'large_trade_usd', rule_id: 'R010', account_id: '12345678', product: 'EURUSD', trigger_time: '2024-01-15 09:45:30', trigger_value: 125000, status: 'new', platform: 'MT4', details: { lots: 2.5, account_currency: 'USD', rate_used: 1.0, account_type: 'standard' } },
+        { alert_id: 'A011', source_id: 'DS002', rule_type: 'large_trade_usd', rule_id: 'R011', account_id: '66666666', product: 'XAUUSD.m', trigger_time: '2024-01-15 10:55:18', trigger_value: 5500, status: 'reviewed', platform: 'MT5', details: { lots: 1.0, account_currency: 'USC', rate_used: 1.0, account_type: 'cent' } },
 
         // 3. Liquidity Trade (拆单监控)
         { alert_id: 'A020', source_id: 'DS001', rule_type: 'liquidity_trade', rule_id: 'R020', account_id: '12345678', product: 'XAUUSD', trigger_time: '2024-01-15 11:30:00', trigger_value: 15.5, status: 'new', platform: 'MT4', details: { order_count: 8, time_window: 60, direction: 'BUY', category: 'Metals' } },
@@ -367,16 +379,16 @@ const MockData = {
 
     // 权限定义
     permissionDefinitions: [
-        { key: 'view_dashboard', menu_key: 'dashboard', name: '查看仪表盘', menu: 'Dashboard', icon: '<i data-lucide="layout-dashboard"></i>' },
-        { key: 'manage_rules', menu_key: 'rules_manage', name: '管理规则', menu: '规则管理', icon: '<i data-lucide="cog"></i>' },
-        { key: 'manage_products', menu_key: 'product_mapping', name: '管理产品映射', menu: '产品映射', icon: '<i data-lucide="package"></i>' },
-        { key: 'view_alerts', menu_key: 'alert_records', name: '查看告警', menu: '告警记录', icon: '<i data-lucide="bell"></i>' },
-        { key: 'manage_accounts', menu_key: 'account_management', name: '管理账户', menu: '账户管理', icon: '<i data-lucide="users"></i>' },
-        { key: 'manage_companies', menu_key: 'company_management', name: '管理公司', menu: '公司管理', icon: '<i data-lucide="building-2"></i>' },
-        { key: 'manage_datasources', menu_key: 'datasource_management', name: '管理数据源', menu: '数据源管理', icon: '<i data-lucide="plug"></i>' },
-        { key: 'manage_users', menu_key: 'user_management', name: '管理用户', menu: '用户管理', icon: '<i data-lucide="user"></i>' },
-        { key: 'manage_roles', menu_key: 'role_management', name: '管理角色', menu: '角色管理', icon: '<i data-lucide="lock"></i>' },
-        { key: 'manage_settings', menu_key: 'global_config', name: '管理配置', menu: '全局配置', icon: '<i data-lucide="wrench"></i>' }
+        { key: 'view_dashboard', menu_key: 'home', name: '查看仪表盘', menu: 'Dashboard', icon: '<i data-lucide="layout-dashboard"></i>' },
+        { key: 'manage_rules', menu_key: 'rules', name: '管理规则', menu: '规则管理', icon: '<i data-lucide="cog"></i>' },
+        { key: 'manage_products', menu_key: 'products', name: '管理产品', menu: '产品管理', icon: '<i data-lucide="package"></i>' },
+        { key: 'view_alerts', menu_key: 'alerts', name: '查看告警', menu: '告警记录', icon: '<i data-lucide="bell"></i>' },
+        { key: 'manage_accounts', menu_key: 'accounts', name: '管理账户', menu: '账户管理', icon: '<i data-lucide="users"></i>' },
+        { key: 'manage_companies', menu_key: 'companies', name: '管理公司', menu: '公司管理', icon: '<i data-lucide="building-2"></i>' },
+        { key: 'manage_datasources', menu_key: 'datasources', name: '管理数据源', menu: '数据源管理', icon: '<i data-lucide="plug"></i>' },
+        { key: 'manage_users', menu_key: 'users', name: '管理用户', menu: '用户管理', icon: '<i data-lucide="user"></i>' },
+        { key: 'manage_roles', menu_key: 'roles', name: '管理角色', menu: '角色管理', icon: '<i data-lucide="lock"></i>' },
+        { key: 'manage_settings', menu_key: 'settings', name: '管理配置', menu: '全局配置', icon: '<i data-lucide="wrench"></i>' }
     ],
 
     // 角色管理方法

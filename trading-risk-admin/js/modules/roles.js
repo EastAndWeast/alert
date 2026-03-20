@@ -65,22 +65,21 @@ var RolesModule = {
             <div class="card" style="margin-bottom: var(--spacing-lg);">\
                 <div class="card-header">\
                     <h3 class="card-title"><i data-lucide="clipboard-list"></i> ' + I18n.t('available_perm_list') + '</h3>\
+                    <span style="font-size:12px;color:var(--text-muted);">' + permissions.length + ' ' + I18n.t('unit_items') + '</span>\
                 </div>\
-                <div class="card-body">\
-                    <div class="grid grid-5">\
+                <div class="card-body" style="padding: var(--spacing-md);">\
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">\
                         ' + permissions.map(function (p) {
-            return '<div class="permission-item" style="display: flex; align-items: center; gap: 8px; padding: 12px; background: var(--bg-tertiary); border-radius: var(--border-radius-sm);">\
-                                <span style="font-size: 20px;">' + p.icon + '</span>\
-                                <div>\
-                                    <div style="font-weight: 500;">' + I18n.t('perm_' + p.key) + '</div>\
-                                    <div style="font-size: 12px; color: var(--text-muted);">' + I18n.t(p.menu_key || p.key) + '</div>\
-                                </div>\
+            return '<div style="display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--bg-tertiary);border-radius:var(--border-radius-sm);font-size:13px;">\
+                                <span style="font-size:16px;flex-shrink:0;">' + p.icon + '</span>\
+                                <span style="font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + I18n.t(p.menu_key) + '</span>\
                             </div>';
         }).join('') + '\
                     </div>\
                 </div>\
             </div>';
     },
+
 
     renderTableRows: function (roles) {
         return roles.map(function (r) {

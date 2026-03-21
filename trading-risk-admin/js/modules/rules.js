@@ -510,7 +510,7 @@ const RulesModule = {
                 if (dataSourceHtml) html += dataSourceHtml;
                 html += '    <div style="border-left: 3px solid var(--success-color); padding-left: 10px; margin-bottom: 12px;"><strong>📊 ' + I18n.t('standard_section') + '</strong></div>';
                 html += '    <div class="form-group"><label>' + I18n.t('usd_threshold_label') + ' *</label>';
-                html += '      <input type="number" name="usd_value_threshold" class="form-control" step="1000" value="' + (p ? p.usd_value_threshold : 50000) + '" required></div>';
+                html += '      <input type="number" name="usd_value_threshold" class="form-control" step="1000" value="' + (p ? p.usd_value_threshold : 50000) + '" required oninput="RulesModule.syncCentThreshold(this)"></div>';
                 // 美分开关
                 html += '    <div style="border-left: 3px solid var(--warning-color); padding-left: 10px; margin: 16px 0 12px;"><strong>🔸 ' + I18n.t('cent_section') + '</strong></div>';
                 html += '    <div class="form-group"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;">';
@@ -520,7 +520,7 @@ const RulesModule = {
                 html += '        <input type="text" name="cent_account_groups" class="form-control" value="' + (p && p.cent_account_groups ? p.cent_account_groups.join(',') : '*CENT*,*MICRO*') + '">';
                 html += '        <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">' + I18n.t('cent_group_help') + '</div></div>';
                 html += '      <div class="form-group"><label>' + I18n.t('cent_threshold_label') + '</label>';
-                html += '        <input type="number" name="cent_threshold" class="form-control" step="100" value="' + centThreshold + '">';
+                html += '        <input type="number" name="cent_threshold" id="centThresholdInput" class="form-control" step="100" value="' + centThreshold + '" readonly style="background:var(--bg-tertiary);cursor:not-allowed;color:var(--text-muted);">';
                 html += '        <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">' + I18n.t('cent_threshold_auto') + '</div></div>';
                 html += '    </div>';
                 html += '    <div class="rule-tip">' + I18n.t('rule_tip_large_trade_usd') + '</div>';
@@ -796,7 +796,7 @@ const RulesModule = {
                 p.usd_value_threshold = parseFloat(formData.get('usd_value_threshold'));
                 p.cent_enabled = formData.get('cent_enabled') === 'on';
                 p.cent_account_groups = formData.get('cent_account_groups') ? formData.get('cent_account_groups').split(',').map(function (s) { return s.trim(); }).filter(function (s) { return s; }) : [];
-                p.cent_threshold = parseFloat(formData.get('cent_threshold')) || Math.round(p.usd_value_threshold / 100);
+                p.cent_threshold = Math.round(p.usd_value_threshold / 100);
                 p.cent_symbol_filter = formData.get('cent_symbol_filter') ? formData.get('cent_symbol_filter').split(',').map(function (s) { return s.trim(); }).filter(function (s) { return s; }) : [];
                 p.symbol_filter = formData.get('symbol_filter') ? formData.get('symbol_filter').split(',').map(function (s) { return s.trim(); }).filter(function (s) { return s; }) : [];
                 break;
@@ -1053,6 +1053,15 @@ const RulesModule = {
     },
 
     // 切换美分账户区域显示/隐藏
+    syncCentThreshold(usdInput) {
+        var usdValue = parseFloat(usdInput.value) || 0;
+        var centValue = Math.round(usdValue / 100);
+        var centInput = document.getElementById('centThresholdInput');
+        if (centInput) {
+            centInput.value = centValue;
+        }
+    },
+
     toggleCentSection(checkbox) {
         var show = checkbox.checked;
         var centSection = document.getElementById('centAccountSection');

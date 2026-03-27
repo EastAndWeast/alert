@@ -178,9 +178,16 @@ var App = {
         setInterval(updateTime, 1000);
     },
 
-    showModal: function (title, content) {
+    showModal: function (title, content, options) {
+        options = options || {};
         document.getElementById('modalTitle').textContent = title;
         document.getElementById('modalBody').innerHTML = content;
+        
+        var footer = document.getElementById('modalFooter');
+        if (footer) {
+            footer.style.display = options.hideFooter ? 'none' : 'flex';
+        }
+
         document.getElementById('modalOverlay').classList.add('active');
     },
 

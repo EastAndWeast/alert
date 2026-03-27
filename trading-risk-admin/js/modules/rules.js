@@ -1453,6 +1453,7 @@ const RulesModule = {
         var newName = document.getElementById('cloneSingleName').value.trim() || this.generateCloneName(rule, MockData.dataSources.find(function (s) { return s.source_id === targetSourceId; }));
         var enabled = document.getElementById('cloneSingleEnabled').value === 'true';
         this.executeClone([{ rule: rule, targetSourceId: targetSourceId, newName: newName, enabled: enabled }]);
+        this._restoreModalFooter();
         App.hideModal();
         var targetName = this._getSourceName(targetSourceId);
         App.showToast('success', '✅ 成功克隆规则到 ' + targetName);
@@ -1485,27 +1486,31 @@ const RulesModule = {
         this._showBatchStep1(rules, otherSources, currentSourceId, ruleType);
     },
 
-    _showBatchStep1(rules, otherSources, currentSourceId, ruleType) {
-        var defaultTarget = otherSources[0];
-        var html = '<div class="clone-modal-wrap">';
-        html += '<div class="clone-steps"><span class="clone-step-active">① 选择目标</span><span class="clone-step">② 预览规则</span><span class="clone-step">③ 确认克隆</span></div>';
-        html += '<div class="form-group" style="margin-top:16px;"><label>目标服务器</label>';
-        html += '<select class="form-control" id="batchCloneTarget">';
-        otherSources.forEach(function (s) {
-            html += '<option value="' + s.source_id + '">' + s.source_name + ' (' + s.platform_type + ')</option>';
-        });
-        html += '</select></div>';
-        html += '<div class="form-group"><label>克隆范围</label>';
-        html += '<div class="clone-info-box">将克隆当前数据源下 <strong>' + rules.length + '</strong> 条「' + I18n.t(ruleType) + '」规则</div>';
-        html += '</div>';
-        html += '<div class="modal-actions">';
-        html += '<button class="btn btn-secondary" onclick="App.hideModal()">取消</button>';
-        html += '<button class="btn btn-primary" onclick="RulesModule._showBatchStep2(\'' + ruleType + '\')">下一步：预览规则 →</button>';
-        html += '</div></div>';
-
-        App.showModal('批量克隆规则', html);
-        this._injectCloneStyles();
-    },
+    _showBatchStep1(rules, otherSources, currentSourceId, ruleType) {
+        var currentSource = MockData.dataSources.find(function(s){ return s.source_id === currentSourceId; });
+        var currentSourceName = currentSource ? currentSource.source_name + ' (' + currentSource.platform_type + ')' : currentSourceId;
+        var html = '<div class="clone-modal-wrap">';
+        html += '<div class="clone-steps"><span class="clone-step-active">① 选择目标</span><span class="clone-step">② 预览规则</span><span class="clone-step">③ 确认克隆</span></div>';
+        html += '<div class="clone-route-box">';
+        html += '<div class="clone-route-row"><span class="clone-route-label">来源服务器</span><span class="clone-route-val">' + currentSourceName + '</span></div>';
+        html += '<div class="clone-route-arrow">↓ 将克隆到</div>';
+        html += '<div class="clone-route-row"><span class="clone-route-label">目标服务器</span>';
+        html += '<select class="form-control clone-route-select" id="batchCloneTarget">';
+        otherSources.forEach(function (s) {
+            html += '<option value="' + s.source_id + '">' + s.source_name + ' (' + s.platform_type + ')</option>';
+        });
+        html += '</select></div></div>';
+        html += '<div class="clone-info-box" style="margin-top:12px;">将克隆当前数据源下 <strong>' + rules.length + '</strong> 条「' + I18n.t(ruleType) + '」规则</div>';
+        html += '<div class="modal-actions" style="margin-top:16px;">';
+        html += '<button class="btn btn-secondary" onclick="RulesModule._restoreModalFooter();App.hideModal()">取消</button>';
+        html += '<button class="btn btn-primary" onclick="RulesModule._showBatchStep2(\'' + ruleType + '\')">下一步：预览规则 →</button>';
+        html += '</div></div>';
+
+        App.showModal('批量克隆规则', html);
+        this._hideModalFooter();
+        this._injectCloneStyles();
+        this._hideModalFooter();
+    },
 
     _showBatchStep2(ruleType) {
         var targetSourceId = document.getElementById('batchCloneTarget').value;
@@ -1552,19 +1557,23 @@ const RulesModule = {
         // 详细模式（隐藏）：左右对比
         html += '<div id="cloneBatchDetailMode" style="display:none;">';
         clonesPreview.forEach(function (item, idx) {
-            var r = item.rule;
-            var rType = r.rule_type;
+            var r = item.rule;
+
+            var rType = r.rule_type;
+
             html += '<details class="clone-detail-card"><summary>' + (r.custom_name || I18n.t(r.rule_type)) + ' → ' + item.newName + '</summary>';
             html += '<div class="clone-compare-panel">';
             html += '<div class="clone-side clone-side-left"><div class="clone-side-title">原始（只读）</div>';
             html += '<div class="clone-field-row"><span class="clone-label">名称</span><span class="clone-val">' + (r.custom_name || I18n.t(r.rule_type)) + '</span></div>';
             html += '<div class="clone-field-row"><span class="clone-label">状态</span><span class="clone-val">' + (r.enabled ? '🟢 启用' : '⚪ 禁用') + '</span></div>';
-            html += '<div class="clone-params-section">' + RulesModule.renderRuleParams(r, rType) + '</div>';
+            html += '<div class="clone-params-section">' + RulesModule.renderRuleParams(r, rType) + '</div>';
+
             html += '</div>';
             html += '<div class="clone-side clone-side-right"><div class="clone-side-title">克隆后</div>';
             html += '<div class="form-group"><label>名称</label><input type="text" class="form-control batch-name-input" data-idx="' + idx + '" value="' + item.newName + '" maxlength="50"></div>';
             html += '<div class="form-group"><label>初始状态</label><select class="form-control batch-enable-sel" data-idx="' + idx + '"><option value="false" selected>禁用</option><option value="true">启用</option></select></div>';
-            html += '<div class="clone-params-note">\U0001f4cb \u53c2\u6570\u5c06\u539f\u6837\u590d\u5236</div>';
+            html += '<div class="clone-params-note">\U0001f4cb \u53c2\u6570\u5c06\u539f\u6837\u590d\u5236</div>';
+
             html += '</div></div></details>';
         });
         html += '</div>';
@@ -1575,8 +1584,66 @@ const RulesModule = {
         html += '</div></div>';
 
         App.showModal('批量克隆规则', html);
+        this._hideModalFooter();
     },
 
+    _showBatchStep2FromState(ruleType) {
+        // 从已保存状态恢复步骤2，无需重新读取 DOM
+        var targetSource = this._batchTargetSource;
+        var clonesPreview = this._batchClonesPreview;
+        if (!targetSource || !clonesPreview) {
+            this.showBatchCloneModal(ruleType);
+            return;
+        }
+        // 重用 _showBatchStep2 的核心渲染逻辑，但直接用已有 targetSource 和 clonesPreview
+        this._renderBatchStep2UI(ruleType, targetSource, clonesPreview);
+    },
+
+    _renderBatchStep2UI(ruleType, targetSource, clonesPreview) {
+        var html = '<div class="clone-modal-wrap">';
+        html += '<div class="clone-steps"><span class="clone-step-done">✓ 选择目标</span><span class="clone-step-active">② 预览规则</span><span class="clone-step">③ 确认克隆</span></div>';
+        html += '<div class="clone-batch-header">';
+        html += '<div class="clone-batch-title">共 <strong>' + clonesPreview.length + '</strong> 条规则将克隆至 <strong>' + targetSource.source_name + '</strong></div>';
+        html += '<div class="clone-batch-controls">';
+        html += '<label class="checkbox-inline"><input type="checkbox" id="batchEnableAll" onchange="RulesModule._toggleBatchEnable(this)"> 全部启用</label>';
+        html += '<button class="btn btn-sm btn-secondary clone-mode-btn" id="cloneModeToggle" onclick="RulesModule._toggleCloneMode()">展开详情 ▼</button>';
+        html += '</div></div>';
+        html += '<div id="cloneBatchFastMode">';
+        html += '<div class="clone-fast-list">';
+        clonesPreview.forEach(function (item, idx) {
+            html += '<div class="clone-fast-item"><div class="clone-fast-left">';
+            html += '<label class="checkbox-inline"><input type="checkbox" class="batch-enable-cb" data-idx="' + idx + '"" + (item.enabled ? " checked" : "") + "> 启用</label>';
+            html += '<span class="clone-fast-name">' + (item.rule.custom_name || I18n.t(item.rule.rule_type)) + '</span>';
+            html += '<span class="clone-fast-arrow">→</span>';
+            html += '<input type="text" class="clone-fast-input batch-name-input" data-idx="' + idx + '" value="' + item.newName + '" maxlength="50">';
+            html += '</div></div>';
+        });
+        html += '</div></div>';
+        html += '<div id="cloneBatchDetailMode" style="display:none;">';
+        clonesPreview.forEach(function (item, idx) {
+            var r = item.rule;
+            var rType = r.rule_type;
+            html += '<details class="clone-detail-card"><summary>' + (r.custom_name || I18n.t(r.rule_type)) + ' → ' + item.newName + '</summary>';
+            html += '<div class="clone-compare-panel">';
+            html += '<div class="clone-side clone-side-left"><div class="clone-side-title">原始（只读）</div>';
+            html += '<div class="clone-field-row"><span class="clone-label">名称</span><span class="clone-val">' + (r.custom_name || I18n.t(r.rule_type)) + '</span></div>';
+            html += '<div class="clone-field-row"><span class="clone-label">状态</span><span class="clone-val">' + (r.enabled ? '🟢 启用' : '⚪ 禁用') + '</span></div>';
+            html += '<div class="clone-params-section">' + RulesModule.renderRuleParams(r, rType) + '</div>';
+            html += '</div>';
+            html += '<div class="clone-side clone-side-right"><div class="clone-side-title">克隆后</div>';
+            html += '<div class="form-group"><label>名称</label><input type="text" class="form-control batch-name-input" data-idx="' + idx + '" value="' + item.newName + '" maxlength="50"></div>';
+            html += '<div class="form-group"><label>初始状态</label><select class="form-control batch-enable-sel" data-idx="' + idx + '"><option value="false"' + (item.enabled ? '' : ' selected') + '>禁用</option><option value="true"' + (item.enabled ? ' selected' : '') + '>启用</option></select></div>';
+            html += '</div></div></details>';
+        });
+        html += '</div>';
+        html += '<div class="modal-actions" style="margin-top:16px;">';
+        html += '<button class="btn btn-secondary" onclick="RulesModule._showBatchStep1(RulesModule.getRulesByType(\'' + ruleType + '\'), MockData.dataSources.filter(function(s){return s.source_id!==RulesModule.getRulesByType(\'' + ruleType + '\')[0].source_id;}), RulesModule.getRulesByType(\'' + ruleType + '\')[0].source_id, \'' + ruleType + '\')">← 返回</button>';
+        html += '<button class="btn btn-primary" onclick="RulesModule._showBatchStep3(\'' + ruleType + '\')">下一步：确认克隆 →</button>';
+        html += '</div></div>';
+        App.showModal('批量克隆规则', html);
+        this._hideModalFooter();
+    },
+
     _toggleCloneMode() {
         var fastMode = document.getElementById('cloneBatchFastMode');
         var detailMode = document.getElementById('cloneBatchDetailMode');
@@ -1632,11 +1699,12 @@ const RulesModule = {
         html += '<div class="clone-confirm-tip">* 输入内容与服务器名称完全一致后，方可点击确认</div>';
         html += '</div>';
         html += '<div class="modal-actions" style="margin-top:20px;">';
-        html += '<button class="btn btn-secondary" onclick="RulesModule._showBatchStep2(\'' + ruleType + '\')">← 返回</button>';
+        html += '<button class="btn btn-secondary" onclick="RulesModule._showBatchStep2FromState(\'' + ruleType + '\')">← 返回</button>';
         html += '<button class="btn btn-danger" id="batchCloneConfirmBtn" disabled onclick="RulesModule._executeBatchClone(\'' + ruleType + '\')">我确认，开始克隆</button>';
         html += '</div></div>';
 
         App.showModal('批量克隆规则', html);
+        this._hideModalFooter();
 
         // 监听输入，与服务器名称匹配后解锁按钮
         setTimeout(function () {
@@ -1654,6 +1722,7 @@ const RulesModule = {
         var data = this._batchClonesPreview;
         var targetName = this._batchTargetSource ? this._batchTargetSource.source_name : '目标服务器';
         this.executeClone(data);
+        this._restoreModalFooter();
         App.hideModal();
         App.showToast('success', '✅ 成功克隆 ' + data.length + ' 条规则至 ' + targetName);
         this._batchClonesPreview = null;
@@ -1666,6 +1735,17 @@ const RulesModule = {
         return s ? s.source_name : sourceId;
     },
 
+
+    _hideModalFooter() {
+        var footer = document.getElementById('modalFooter');
+        if (footer) footer.style.display = 'none';
+    },
+
+    _restoreModalFooter() {
+        var footer = document.getElementById('modalFooter');
+        if (footer) footer.style.display = '';
+    },
+
     _injectCloneStyles() {
         if (document.getElementById('clone-modal-styles')) return;
         var style = document.createElement('style');
@@ -1701,6 +1781,14 @@ const RulesModule = {
         .clone-detail-card summary { padding:8px 12px; cursor:pointer; font-size:13px; font-weight:500; background:var(--bg-secondary); }
         .clone-detail-card summary:hover { background:var(--hover-color,rgba(0,0,0,0.05)); }
         .clone-info-box { padding:10px 14px; background:rgba(79,70,229,0.06); border:1px solid rgba(79,70,229,0.2); border-radius:6px; font-size:14px; }
+        .clone-route-box { background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:8px; padding:12px 16px; margin-top:12px; }
+        .clone-route-row { display:flex; flex-direction:column; gap:4px; margin-bottom:6px; }
+        .clone-route-row:last-child { margin-bottom:0; }
+        .clone-route-label { font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; }
+        .clone-route-val { font-size:14px; font-weight:500; color:var(--text-primary); }
+        .clone-route-select { margin-top:4px; }
+        .clone-route-arrow { text-align:center; color:var(--primary-color); font-size:16px; font-weight:600; padding:4px 0; }
+
         .clone-confirm-box { text-align:center; padding:20px; background:var(--bg-secondary); border-radius:8px; border:1px solid var(--border-color); margin:12px 0; }
         .clone-confirm-icon { font-size:36px; margin-bottom:8px; }
         .clone-confirm-desc { font-size:15px; margin-bottom:12px; }

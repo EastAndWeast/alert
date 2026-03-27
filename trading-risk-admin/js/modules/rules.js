@@ -1552,16 +1552,19 @@ const RulesModule = {
         // 详细模式（隐藏）：左右对比
         html += '<div id="cloneBatchDetailMode" style="display:none;">';
         clonesPreview.forEach(function (item, idx) {
-            var r = item.rule;
+            var r = item.rule;
+            var rType = r.rule_type;
             html += '<details class="clone-detail-card"><summary>' + (r.custom_name || I18n.t(r.rule_type)) + ' → ' + item.newName + '</summary>';
             html += '<div class="clone-compare-panel">';
             html += '<div class="clone-side clone-side-left"><div class="clone-side-title">原始（只读）</div>';
             html += '<div class="clone-field-row"><span class="clone-label">名称</span><span class="clone-val">' + (r.custom_name || I18n.t(r.rule_type)) + '</span></div>';
             html += '<div class="clone-field-row"><span class="clone-label">状态</span><span class="clone-val">' + (r.enabled ? '🟢 启用' : '⚪ 禁用') + '</span></div>';
+            html += '<div class="clone-params-section">' + RulesModule.renderRuleParams(r, rType) + '</div>';
             html += '</div>';
             html += '<div class="clone-side clone-side-right"><div class="clone-side-title">克隆后</div>';
             html += '<div class="form-group"><label>名称</label><input type="text" class="form-control batch-name-input" data-idx="' + idx + '" value="' + item.newName + '" maxlength="50"></div>';
             html += '<div class="form-group"><label>初始状态</label><select class="form-control batch-enable-sel" data-idx="' + idx + '"><option value="false" selected>禁用</option><option value="true">启用</option></select></div>';
+            html += '<div class="clone-params-note">\U0001f4cb \u53c2\u6570\u5c06\u539f\u6837\u590d\u5236</div>';
             html += '</div></div></details>';
         });
         html += '</div>';

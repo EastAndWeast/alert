@@ -41,9 +41,15 @@ const RulesModule = {
         html += '<div><h2>' + I18n.t(ruleType) + '</h2><p class="text-muted">' + I18n.t(ruleType + '_desc') + '</p></div>';
         html += '</div>';
         if (!isReadOnly) {
+            html += '<div style="display:flex;gap:8px;align-items:center;">';
             html += '<button class="btn btn-primary" onclick="RulesModule.showAddRuleModal(\'' + ruleType + '\')"><i data-lucide="plus" style="width:14px;height:14px;vertical-align:-2px;"></i> ' + I18n.t('add_rule') + '</button>';
+            if (rules.length > 0) {
+                html += '<button class="btn btn-secondary" onclick="RulesModule.showBatchCloneModal(\'' + ruleType + '\')" title="批量克隆全部规则到其他服务器"><i data-lucide="copy-check" style="width:14px;height:14px;vertical-align:-2px;"></i> 批量克隆</button>';
+            }
+            html += '</div>';
         }
         html += '</div>';
+
 
         if (rules.length === 0) {
             html += this.renderNoRules(title);
@@ -95,6 +101,7 @@ const RulesModule = {
             html += '<div class="rule-actions">';
             html += '<button class="btn btn-sm btn-' + (rule.enabled ? 'warning' : 'success') + '" onclick="RulesModule.toggleRule(\'' + rule.rule_id + '\')">' + (rule.enabled ? I18n.t('disable') : I18n.t('enable')) + '</button>';
             html += '<button class="btn btn-sm btn-secondary" onclick="RulesModule.showEditRuleModal(\'' + rule.rule_id + '\')">' + I18n.t('edit') + '</button>';
+            html += '<button class="btn btn-sm btn-info" onclick="RulesModule.showCloneModal(\'' + rule.rule_id + '\')" title="克隆此规则到其他服务器"><i data-lucide="copy" style="width:12px;height:12px;vertical-align:-1px;"></i> 克隆</button>';
             html += '<button class="btn btn-sm btn-danger" onclick="RulesModule.deleteRule(\'' + rule.rule_id + '\')">' + I18n.t('delete') + '</button>';
             html += '</div>';
         }
@@ -1312,5 +1319,393 @@ const RulesModule = {
                 })(hiddenInput);
             }
         }
+    },
+
+    // ==================== 规则克隆功能 ====================
+
+    // T2: 命名算法
+    generateCloneName(rule, targetSource) {
+        var baseName = rule.custom_name || rule.name || I18n.t(rule.rule_type) || rule.rule_type;
+        var targetName = targetSource ? targetSource.source_name : '未知服务器';
+        var rawName = baseName + ' - ' + targetName;
+        // 截断至 50 字符
+        if (rawName.length > 50) rawName = rawName.substring(0, 47) + '...';
+        // 检查同名规则，追加序号
+        var existingNames = MockData.rules
+            .filter(function (r) { return r.source_id === targetSource.source_id; })
+            .map(function (r) { return r.custom_name || r.name || ''; });
+        if (existingNames.indexOf(rawName) < 0) return rawName;
+        for (var i = 2; i <= 99; i++) {
+            var candidate = rawName + ' (' + i + ')';
+            if (candidate.length > 50) candidate = rawName.substring(0, 44) + '... (' + i + ')';
+            if (existingNames.indexOf(candidate) < 0) return candidate;
+        }
+        return rawName;
+    },
+
+    // T5: 执行克隆（单条或批量）
+    executeClone(clonesData) {
+        // clonesData: [{ rule, targetSourceId, newName, enabled }]
+        var newRuleIds = [];
+        for (var i = 0; i < clonesData.length; i++) {
+            var item = clonesData[i];
+            var orig = item.rule;
+            var newRule = {
+                rule_id: 'R' + (this.ruleIdCounter++),
+                source_id: item.targetSourceId,
+                rule_type: orig.rule_type,
+                name: orig.name,
+                custom_name: item.newName,
+                description: orig.description || '',
+                icon: orig.icon || '',
+                enabled: item.enabled,
+                parameters: JSON.parse(JSON.stringify(orig.parameters || {})),
+                trigger_action: orig.trigger_action || 'alert',
+                triggered_count: 0
+            };
+            MockData.rules.push(newRule);
+            newRuleIds.push(newRule.rule_id);
+        }
+        return newRuleIds;
+    },
+
+    // T3: 单条克隆弹窗
+    showCloneModal(ruleId) {
+        var rule = MockData.rules.find(function (r) { return r.rule_id === ruleId; });
+        if (!rule) return;
+
+        var user = MockData.currentUser;
+        var allSources = MockData.dataSources.filter(function (s) {
+            if (user.role === 'super_admin') return true;
+            var ids = user.datasource_ids || [];
+            return ids.indexOf(s.source_id) >= 0;
+        });
+        // 排除当前服务器
+        var otherSources = allSources.filter(function (s) { return s.source_id !== rule.source_id; });
+
+        if (otherSources.length === 0) {
+            App.showToast('warning', '暂无其他服务器可选，请先添加数据源。');
+            return;
+        }
+
+        var defaultTarget = otherSources[0];
+        var defaultName = this.generateCloneName(rule, defaultTarget);
+
+        var html = '<div class="clone-modal-wrap">';
+        html += '<h3 style="margin:0 0 16px;">克隆规则</h3>';
+
+        // 目标服务器选择
+        html += '<div class="form-group">';
+        html += '<label>目标服务器</label>';
+        html += '<select class="form-control" id="cloneSingleTarget" onchange="RulesModule.onSingleCloneTargetChange(\'' + ruleId + '\')">';
+        otherSources.forEach(function (s) {
+            html += '<option value="' + s.source_id + '">' + s.source_name + ' (' + s.platform_type + ')</option>';
+        });
+        html += '</select></div>';
+
+        // 左右对比
+        html += '<div class="clone-compare-panel">';
+        // 左侧：原始规则（只读）
+        html += '<div class="clone-side clone-side-left">';
+        html += '<div class="clone-side-title">📋 原始规则（只读）</div>';
+        html += '<div class="clone-field-row"><span class="clone-label">规则名称</span><span class="clone-val">' + (rule.custom_name || I18n.t(rule.rule_type)) + '</span></div>';
+        html += '<div class="clone-field-row"><span class="clone-label">规则类型</span><span class="clone-val">' + I18n.t(rule.rule_type) + '</span></div>';
+        html += '<div class="clone-field-row"><span class="clone-label">来源服务器</span><span class="clone-val">' + this._getSourceName(rule.source_id) + '</span></div>';
+        html += '<div class="clone-field-row"><span class="clone-label">状态</span><span class="clone-val">' + (rule.enabled ? '🟢 启用' : '⚪ 禁用') + '</span></div>';
+        html += '</div>';
+
+        // 右侧：克隆预览（可编辑）
+        html += '<div class="clone-side clone-side-right">';
+        html += '<div class="clone-side-title">✏️ 克隆后（可调整）</div>';
+        html += '<div class="form-group"><label>规则名称</label>';
+        html += '<input type="text" class="form-control" id="cloneSingleName" value="' + defaultName + '" maxlength="50"></div>';
+        html += '<div class="clone-field-row"><span class="clone-label">规则类型</span><span class="clone-val">' + I18n.t(rule.rule_type) + '</span></div>';
+        html += '<div class="clone-field-row clone-diff"><span class="clone-label">目标服务器</span><span class="clone-val" id="cloneSingleTargetName">' + defaultTarget.source_name + '</span></div>';
+        html += '<div class="form-group"><label>初始状态</label>';
+        html += '<select class="form-control" id="cloneSingleEnabled"><option value="false">禁用（推荐，审查后再开启）</option><option value="true">启用</option></select></div>';
+        html += '</div>';
+        html += '</div>'; // clone-compare-panel
+
+        html += '<div class="modal-actions" style="margin-top:20px;">';
+        html += '<button class="btn btn-secondary" onclick="App.hideModal()">取消</button>';
+        html += '<button class="btn btn-primary" onclick="RulesModule.confirmSingleClone(\'' + ruleId + '\')">确认克隆</button>';
+        html += '</div>';
+        html += '</div>';
+
+        App.showModal('克隆规则', html);
+        this._injectCloneStyles();
+    },
+
+    onSingleCloneTargetChange(ruleId) {
+        var rule = MockData.rules.find(function (r) { return r.rule_id === ruleId; });
+        if (!rule) return;
+        var sel = document.getElementById('cloneSingleTarget');
+        var targetSource = MockData.dataSources.find(function (s) { return s.source_id === sel.value; });
+        if (!targetSource) return;
+        document.getElementById('cloneSingleTargetName').textContent = targetSource.source_name;
+        document.getElementById('cloneSingleName').value = RulesModule.generateCloneName(rule, targetSource);
+    },
+
+    confirmSingleClone(ruleId) {
+        var rule = MockData.rules.find(function (r) { return r.rule_id === ruleId; });
+        if (!rule) return;
+        var targetSourceId = document.getElementById('cloneSingleTarget').value;
+        var newName = document.getElementById('cloneSingleName').value.trim() || this.generateCloneName(rule, MockData.dataSources.find(function (s) { return s.source_id === targetSourceId; }));
+        var enabled = document.getElementById('cloneSingleEnabled').value === 'true';
+        this.executeClone([{ rule: rule, targetSourceId: targetSourceId, newName: newName, enabled: enabled }]);
+        App.hideModal();
+        var targetName = this._getSourceName(targetSourceId);
+        App.showToast('success', '✅ 成功克隆规则到 ' + targetName);
+        Router.refresh();
+    },
+
+    // T4: 批量克隆弹窗
+    showBatchCloneModal(ruleType) {
+        var user = MockData.currentUser;
+        var allSources = MockData.dataSources.filter(function (s) {
+            if (user.role === 'super_admin') return true;
+            var ids = user.datasource_ids || [];
+            return ids.indexOf(s.source_id) >= 0;
+        });
+
+        // 获取当前页面的数据源（从当前规则推断）
+        var rules = this.getRulesByType(ruleType);
+        if (rules.length === 0) {
+            App.showToast('warning', '当前规则类型下没有可克隆的规则。');
+            return;
+        }
+        var currentSourceId = rules[0].source_id;
+        var otherSources = allSources.filter(function (s) { return s.source_id !== currentSourceId; });
+        if (otherSources.length === 0) {
+            App.showToast('warning', '暂无其他服务器可选，请先添加数据源。');
+            return;
+        }
+
+        // 批量弹窗 Step 1：选服务器
+        this._showBatchStep1(rules, otherSources, currentSourceId, ruleType);
+    },
+
+    _showBatchStep1(rules, otherSources, currentSourceId, ruleType) {
+        var defaultTarget = otherSources[0];
+        var html = '<div class="clone-modal-wrap">';
+        html += '<div class="clone-steps"><span class="clone-step-active">① 选择目标</span><span class="clone-step">② 预览规则</span><span class="clone-step">③ 确认克隆</span></div>';
+        html += '<div class="form-group" style="margin-top:16px;"><label>目标服务器</label>';
+        html += '<select class="form-control" id="batchCloneTarget">';
+        otherSources.forEach(function (s) {
+            html += '<option value="' + s.source_id + '">' + s.source_name + ' (' + s.platform_type + ')</option>';
+        });
+        html += '</select></div>';
+        html += '<div class="form-group"><label>克隆范围</label>';
+        html += '<div class="clone-info-box">将克隆当前数据源下 <strong>' + rules.length + '</strong> 条「' + I18n.t(ruleType) + '」规则</div>';
+        html += '</div>';
+        html += '<div class="modal-actions">';
+        html += '<button class="btn btn-secondary" onclick="App.hideModal()">取消</button>';
+        html += '<button class="btn btn-primary" onclick="RulesModule._showBatchStep2(\'' + ruleType + '\')">下一步：预览规则 →</button>';
+        html += '</div></div>';
+
+        App.showModal('批量克隆规则', html);
+        this._injectCloneStyles();
+    },
+
+    _showBatchStep2(ruleType) {
+        var targetSourceId = document.getElementById('batchCloneTarget').value;
+        var targetSource = MockData.dataSources.find(function (s) { return s.source_id === targetSourceId; });
+        var rules = this.getRulesByType(ruleType);
+
+        // 为每条规则生成克隆名称
+        var clonesPreview = rules.map(function (r) {
+            return {
+                rule: r,
+                targetSourceId: targetSourceId,
+                newName: RulesModule.generateCloneName(r, targetSource),
+                enabled: false
+            };
+        });
+
+        // 存入临时状态
+        this._batchClonesPreview = clonesPreview;
+        this._batchTargetSource = targetSource;
+
+        var html = '<div class="clone-modal-wrap">';
+        html += '<div class="clone-steps"><span class="clone-step-done">✓ 选择目标</span><span class="clone-step-active">② 预览规则</span><span class="clone-step">③ 确认克隆</span></div>';
+        html += '<div class="clone-batch-header">';
+        html += '<div class="clone-batch-title">共 <strong>' + rules.length + '</strong> 条规则将克隆至 <strong>' + targetSource.source_name + '</strong></div>';
+        html += '<div class="clone-batch-controls">';
+        html += '<label class="checkbox-inline"><input type="checkbox" id="batchEnableAll" onchange="RulesModule._toggleBatchEnable(this)"> 全部启用</label>';
+        html += '<button class="btn btn-sm btn-secondary clone-mode-btn" id="cloneModeToggle" onclick="RulesModule._toggleCloneMode()">展开详情 ▼</button>';
+        html += '</div></div>';
+
+        // 快速模式（默认）：折叠列表
+        html += '<div id="cloneBatchFastMode">';
+        html += '<div class="clone-fast-list">';
+        clonesPreview.forEach(function (item, idx) {
+            html += '<div class="clone-fast-item">';
+            html += '<div class="clone-fast-left">';
+            html += '<label class="checkbox-inline"><input type="checkbox" class="batch-enable-cb" data-idx="' + idx + '"> 启用</label>';
+            html += '<span class="clone-fast-name">' + (item.rule.custom_name || I18n.t(item.rule.rule_type)) + '</span>';
+            html += '<span class="clone-fast-arrow">→</span>';
+            html += '<input type="text" class="clone-fast-input batch-name-input" data-idx="' + idx + '" value="' + item.newName + '" maxlength="50">';
+            html += '</div></div>';
+        });
+        html += '</div></div>';
+
+        // 详细模式（隐藏）：左右对比
+        html += '<div id="cloneBatchDetailMode" style="display:none;">';
+        clonesPreview.forEach(function (item, idx) {
+            var r = item.rule;
+            html += '<details class="clone-detail-card"><summary>' + (r.custom_name || I18n.t(r.rule_type)) + ' → ' + item.newName + '</summary>';
+            html += '<div class="clone-compare-panel">';
+            html += '<div class="clone-side clone-side-left"><div class="clone-side-title">原始（只读）</div>';
+            html += '<div class="clone-field-row"><span class="clone-label">名称</span><span class="clone-val">' + (r.custom_name || I18n.t(r.rule_type)) + '</span></div>';
+            html += '<div class="clone-field-row"><span class="clone-label">状态</span><span class="clone-val">' + (r.enabled ? '🟢 启用' : '⚪ 禁用') + '</span></div>';
+            html += '</div>';
+            html += '<div class="clone-side clone-side-right"><div class="clone-side-title">克隆后</div>';
+            html += '<div class="form-group"><label>名称</label><input type="text" class="form-control batch-name-input" data-idx="' + idx + '" value="' + item.newName + '" maxlength="50"></div>';
+            html += '<div class="form-group"><label>初始状态</label><select class="form-control batch-enable-sel" data-idx="' + idx + '"><option value="false" selected>禁用</option><option value="true">启用</option></select></div>';
+            html += '</div></div></details>';
+        });
+        html += '</div>';
+
+        html += '<div class="modal-actions" style="margin-top:16px;">';
+        html += '<button class="btn btn-secondary" onclick="RulesModule._showBatchStep1(RulesModule.getRulesByType(\'' + ruleType + '\'), MockData.dataSources.filter(function(s){return s.source_id!==RulesModule.getRulesByType(\'' + ruleType + '\')[0].source_id;}), RulesModule.getRulesByType(\'' + ruleType + '\')[0].source_id, \'' + ruleType + '\')">← 返回</button>';
+        html += '<button class="btn btn-primary" onclick="RulesModule._showBatchStep3(\'' + ruleType + '\')">下一步：确认克隆 →</button>';
+        html += '</div></div>';
+
+        App.showModal('批量克隆规则', html);
+    },
+
+    _toggleCloneMode() {
+        var fastMode = document.getElementById('cloneBatchFastMode');
+        var detailMode = document.getElementById('cloneBatchDetailMode');
+        var btn = document.getElementById('cloneModeToggle');
+        if (fastMode.style.display !== 'none') {
+            fastMode.style.display = 'none';
+            detailMode.style.display = 'block';
+            btn.textContent = '收起详情 ▲';
+        } else {
+            fastMode.style.display = 'block';
+            detailMode.style.display = 'none';
+            btn.textContent = '展开详情 ▼';
+        }
+    },
+
+    _toggleBatchEnable(checkbox) {
+        var isChecked = checkbox.checked;
+        document.querySelectorAll('.batch-enable-cb').forEach(function (cb) { cb.checked = isChecked; });
+        document.querySelectorAll('.batch-enable-sel').forEach(function (sel) { sel.value = isChecked ? 'true' : 'false'; });
+    },
+
+    _collectBatchFormData() {
+        var preview = this._batchClonesPreview;
+        // 从 fast mode 的 input 同步到 preview
+        document.querySelectorAll('.batch-name-input').forEach(function (input) {
+            var idx = parseInt(input.dataset.idx);
+            if (!isNaN(idx) && preview[idx]) {
+                preview[idx].newName = input.value.trim() || preview[idx].newName;
+            }
+        });
+        document.querySelectorAll('.batch-enable-cb').forEach(function (cb) {
+            var idx = parseInt(cb.dataset.idx);
+            if (!isNaN(idx) && preview[idx]) preview[idx].enabled = cb.checked;
+        });
+        document.querySelectorAll('.batch-enable-sel').forEach(function (sel) {
+            var idx = parseInt(sel.dataset.idx);
+            if (!isNaN(idx) && preview[idx]) preview[idx].enabled = sel.value === 'true';
+        });
+    },
+
+    _showBatchStep3(ruleType) {
+        this._collectBatchFormData();
+        var targetSource = this._batchTargetSource;
+        var count = this._batchClonesPreview.length;
+
+        var html = '<div class="clone-modal-wrap">';
+        html += '<div class="clone-steps"><span class="clone-step-done">✓ 选择目标</span><span class="clone-step-done">✓ 预览规则</span><span class="clone-step-active">③ 确认克隆</span></div>';
+        html += '<div class="clone-confirm-box">';
+        html += '<div class="clone-confirm-icon">⚠️</div>';
+        html += '<div class="clone-confirm-desc">即将克隆 <strong>' + count + '</strong> 条规则到 <strong>"' + targetSource.source_name + '"</strong></div>';
+        html += '<div class="clone-confirm-note">请在下方输入目标服务器名称以确认操作：</div>';
+        html += '<input type="text" class="form-control" id="batchCloneConfirmInput" placeholder="' + targetSource.source_name + '" autocomplete="off">';
+        html += '<div class="clone-confirm-tip">* 输入内容与服务器名称完全一致后，方可点击确认</div>';
+        html += '</div>';
+        html += '<div class="modal-actions" style="margin-top:20px;">';
+        html += '<button class="btn btn-secondary" onclick="RulesModule._showBatchStep2(\'' + ruleType + '\')">← 返回</button>';
+        html += '<button class="btn btn-danger" id="batchCloneConfirmBtn" disabled onclick="RulesModule._executeBatchClone(\'' + ruleType + '\')">我确认，开始克隆</button>';
+        html += '</div></div>';
+
+        App.showModal('批量克隆规则', html);
+
+        // 监听输入，与服务器名称匹配后解锁按钮
+        setTimeout(function () {
+            var input = document.getElementById('batchCloneConfirmInput');
+            var btn = document.getElementById('batchCloneConfirmBtn');
+            if (input && btn) {
+                input.addEventListener('input', function () {
+                    btn.disabled = input.value.trim() !== targetSource.source_name;
+                });
+            }
+        }, 50);
+    },
+
+    _executeBatchClone(ruleType) {
+        var data = this._batchClonesPreview;
+        var targetName = this._batchTargetSource ? this._batchTargetSource.source_name : '目标服务器';
+        this.executeClone(data);
+        App.hideModal();
+        App.showToast('success', '✅ 成功克隆 ' + data.length + ' 条规则至 ' + targetName);
+        this._batchClonesPreview = null;
+        this._batchTargetSource = null;
+        Router.refresh();
+    },
+
+    _getSourceName(sourceId) {
+        var s = MockData.dataSources.find(function (s) { return s.source_id === sourceId; });
+        return s ? s.source_name : sourceId;
+    },
+
+    _injectCloneStyles() {
+        if (document.getElementById('clone-modal-styles')) return;
+        var style = document.createElement('style');
+        style.id = 'clone-modal-styles';
+        style.textContent = `
+        .clone-modal-wrap { max-height: 75vh; overflow-y: auto; }
+        .clone-steps { display:flex; gap:8px; align-items:center; font-size:13px; margin-bottom:4px; flex-wrap:wrap; }
+        .clone-step { color:var(--text-muted); padding:4px 10px; border-radius:12px; background:var(--bg-secondary); }
+        .clone-step-active { color:var(--primary-color); font-weight:600; padding:4px 10px; border-radius:12px; background:rgba(79,70,229,0.1); }
+        .clone-step-done { color:var(--success-color,#10b981); padding:4px 10px; border-radius:12px; background:rgba(16,185,129,0.08); }
+        .clone-compare-panel { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:12px 0; }
+        .clone-side { background:var(--bg-secondary); border-radius:8px; padding:12px; border:1px solid var(--border-color); }
+        .clone-side-left { opacity:0.8; }
+        .clone-side-right { border-color:var(--primary-color); }
+        .clone-side-title { font-size:12px; font-weight:600; color:var(--text-muted); margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px; }
+        .clone-field-row { display:flex; justify-content:space-between; align-items:center; padding:4px 0; border-bottom:1px solid var(--border-color); font-size:13px; }
+        .clone-field-row:last-child { border-bottom:none; }
+        .clone-label { color:var(--text-muted); }
+        .clone-val { font-weight:500; }
+        .clone-diff .clone-val { color:var(--primary-color); font-weight:600; }
+        .clone-batch-header { display:flex; justify-content:space-between; align-items:center; margin:12px 0 8px; flex-wrap:wrap; gap:8px; }
+        .clone-batch-title { font-size:14px; }
+        .clone-batch-controls { display:flex; align-items:center; gap:12px; }
+        .clone-mode-btn { font-size:12px; }
+        .clone-fast-list { border:1px solid var(--border-color); border-radius:8px; overflow:hidden; }
+        .clone-fast-item { padding:8px 12px; border-bottom:1px solid var(--border-color); display:flex; align-items:center; }
+        .clone-fast-item:last-child { border-bottom:none; }
+        .clone-fast-left { display:flex; align-items:center; gap:8px; width:100%; flex-wrap:wrap; }
+        .clone-fast-name { color:var(--text-muted); font-size:13px; min-width:80px; }
+        .clone-fast-arrow { color:var(--primary-color); font-size:16px; }
+        .clone-fast-input { flex:1; min-width:120px; font-size:13px; padding:4px 8px; border:1px solid var(--border-color); border-radius:4px; background:var(--card-bg); color:var(--text-primary); }
+        .clone-detail-card { border:1px solid var(--border-color); border-radius:8px; margin-bottom:8px; overflow:hidden; }
+        .clone-detail-card summary { padding:8px 12px; cursor:pointer; font-size:13px; font-weight:500; background:var(--bg-secondary); }
+        .clone-detail-card summary:hover { background:var(--hover-color,rgba(0,0,0,0.05)); }
+        .clone-info-box { padding:10px 14px; background:rgba(79,70,229,0.06); border:1px solid rgba(79,70,229,0.2); border-radius:6px; font-size:14px; }
+        .clone-confirm-box { text-align:center; padding:20px; background:var(--bg-secondary); border-radius:8px; border:1px solid var(--border-color); margin:12px 0; }
+        .clone-confirm-icon { font-size:36px; margin-bottom:8px; }
+        .clone-confirm-desc { font-size:15px; margin-bottom:12px; }
+        .clone-confirm-note { font-size:13px; color:var(--text-muted); margin-bottom:8px; }
+        .clone-confirm-tip { font-size:11px; color:var(--text-muted); margin-top:6px; }
+        #batchCloneConfirmInput { text-align:center; font-size:14px; }
+        `;
+        document.head.appendChild(style);
     }
 };
+

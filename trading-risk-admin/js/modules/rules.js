@@ -93,12 +93,12 @@ const RulesModule = {
         html += this.renderRuleParams(rule, ruleType);
         html += '</div>';
 
-        html += '<div class="rule-card-footer">';
-        html += '<div class="rule-stats">';
-        html += '<span class="stat-item"><i data-lucide="bar-chart-3"></i> ' + I18n.t('triggered') + ': ' + rule.triggered_count + ' ' + I18n.t('times') + '</span>';
+                html += '<div class="rule-card-footer" style="flex-direction:column; align-items:stretch; gap:12px; padding:12px;">';
+        html += '<div class="rule-stats" style="border-bottom:1px dashed var(--border-color); padding-bottom:8px; width:100%; display:flex; justify-content:flex-start;">';
+        html += '<span class="stat-item" style="color:var(--text-muted); font-size:12px;"><i data-lucide="bar-chart-3" style="width:13px; height:13px; vertical-align:-2px; margin-right:4px;"></i> ' + I18n.t('triggered') + ': <strong style="color:var(--text-primary); font-size:14px; margin-left:4px;">' + rule.triggered_count + '</strong> ' + I18n.t('times') + '</span>';
         html += '</div>';
         if (!isReadOnly) {
-            html += '<div class="rule-actions">';
+            html += '<div class="rule-actions" style="width:100%; justify-content:flex-end; gap:8px; margin-top:2px;">';
             html += '<button class="btn btn-sm btn-' + (rule.enabled ? 'warning' : 'success') + '" onclick="RulesModule.toggleRule(\'' + rule.rule_id + '\')">' + (rule.enabled ? I18n.t('disable') : I18n.t('enable')) + '</button>';
             html += '<button class="btn btn-sm btn-secondary" onclick="RulesModule.showEditRuleModal(\'' + rule.rule_id + '\')">' + I18n.t('edit') + '</button>';
             html += '<button class="btn btn-sm btn-info" onclick="RulesModule.showCloneModal(\'' + rule.rule_id + '\')" title="克隆此规则到其他服务器"><i data-lucide="copy" style="width:12px;height:12px;vertical-align:-1px;"></i> 克隆</button>';
@@ -1402,6 +1402,16 @@ const RulesModule = {
             html += '<option value="' + s.source_id + '">' + s.source_name + ' (' + s.platform_type + ')</option>';
         });
         html += '</select></div>';
+        // 服务器对比路径图
+        var currentSource = MockData.dataSources.find(function(s){ return s.source_id === rule.source_id; });
+        var currentSourceName = currentSource ? currentSource.source_name + ' (' + currentSource.platform_type + ')' : rule.source_id;
+        
+        html += '<div class="clone-route-box" style="margin-bottom:20px;">';
+        html += '<div class="clone-route-row"><span class="clone-route-label">来源服务器</span><span class="clone-route-val">' + currentSourceName + '</span></div>';
+        html += '<div class="clone-route-arrow"><div class="clone-route-arrow-icon">↓ 将克隆到</div></div>';
+        html += '<div class="clone-route-row"><span class="clone-route-label">目标服务器</span><span class="clone-route-val" id="cloneSingleRouteTarget">' + defaultTarget.source_name + ' (' + defaultTarget.platform_type + ')</span></div>';
+        html += '</div>';
+
 
         // 左右对比
         html += '<div class="clone-compare-panel">';
@@ -1426,7 +1436,7 @@ const RulesModule = {
         html += '</div>';
         html += '</div>'; // clone-compare-panel
 
-        html += '<div class="modal-actions" style="margin-top:20px;">';
+        html += '<div class="modal-actions clone-modal-actions" style="margin-top:20px;">';
         html += '<button class="btn btn-secondary" onclick="App.hideModal()">取消</button>';
         html += '<button class="btn btn-primary" onclick="RulesModule.confirmSingleClone(\'' + ruleId + '\')">确认克隆</button>';
         html += '</div>';
@@ -1443,6 +1453,7 @@ const RulesModule = {
         var targetSource = MockData.dataSources.find(function (s) { return s.source_id === sel.value; });
         if (!targetSource) return;
         document.getElementById('cloneSingleTargetName').textContent = targetSource.source_name;
+        document.getElementById('cloneSingleRouteTarget').textContent = targetSource.source_name + ' (' + targetSource.platform_type + ')';
         document.getElementById('cloneSingleName').value = RulesModule.generateCloneName(rule, targetSource);
     },
 
@@ -1756,7 +1767,7 @@ const RulesModule = {
         html += '<input type="text" class="form-control" id="batchCloneConfirmInput" style="text-align:center; font-size:16px; padding:12px; font-weight:bold; letter-spacing:1px; max-width:280px; margin:0 auto;" placeholder="' + targetSource.source_name + '" autocomplete="off">';
         html += '<div class="clone-confirm-tip">* 输入内容与服务器名称完全一致后，方可点击确认</div>';
         html += '</div>';
-        html += '<div class="modal-actions" style="margin-top:20px;">';
+        html += '<div class="modal-actions clone-modal-actions" style="margin-top:20px;">';
         html += '<button class="btn btn-secondary" onclick="RulesModule._showBatchStep2FromState(\'' + ruleType + '\')">← 返回预览</button>';
         html += '<button class="btn btn-danger" id="batchCloneConfirmBtn" disabled onclick="RulesModule._executeBatchClone(\'' + ruleType + '\')"><i data-lucide="zap"></i> 开始执行克隆</button>';
         html += '</div></div>';

@@ -2316,3 +2316,71 @@ fieldset legend {
         padding-right: 0;
     }
 }
+/* 高级告警表格控件: 滚动与冻结列 */
+.table-responsive-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    border-radius: 4px;
+    padding-bottom: 8px; /* 留出滚动条空间 */
+}
+
+.table-responsive-wrapper table {
+    min-width: 1300px;
+    border-collapse: separate; 
+    border-spacing: 0;
+}
+
+.table-responsive-wrapper th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: var(--bg-tertiary); 
+}
+
+.table-responsive-wrapper td.sticky-left, .table-responsive-wrapper th.sticky-left {
+    position: sticky;
+    left: 0;
+    background-color: var(--bg-card);
+    z-index: 5;
+    box-shadow: 2px 0 5px -2px rgba(0,0,0,0.1);
+}
+
+.table-responsive-wrapper td.sticky-right, .table-responsive-wrapper th.sticky-right {
+    position: sticky;
+    right: 0;
+    background-color: var(--bg-card);
+    z-index: 5;
+    box-shadow: -2px 0 5px -2px rgba(0,0,0,0.1);
+}
+
+.table-responsive-wrapper th.sticky-left, .table-responsive-wrapper th.sticky-right {
+    z-index: 15;
+    background-color: var(--bg-tertiary);
+}
+
+/* 排序箭头样式 */
+.sort-icon {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    margin-left: 6px;
+    vertical-align: -2px;
+    opacity: 0.3;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+.sort-icon:hover {
+    opacity: 0.8;
+}
+.sort-icon.active {
+    opacity: 1;
+    stroke: var(--color-primary);
+}
+.th-sortable {
+    cursor: pointer;
+    user-select: none;
+}
+.th-sortable:hover {
+    color: var(--color-primary-light);
+}
+

@@ -69,9 +69,14 @@ const RulesModule = {
 
         var html = '<div class="rule-card">';
         html += '<div class="rule-card-header">';
-        html += '<div class="rule-title">';
-        html += '<span class="rule-icon color-' + typeInfo.color + '">' + typeInfo.icon + '</span>';
-        html += '<span>' + I18n.t(rule.rule_type) + '</span>';
+        html += '<div class="rule-title" style="align-items:flex-start;">';
+        html += '<span class="rule-icon color-' + typeInfo.color + '" style="margin-top:2px;">' + typeInfo.icon + '</span>';
+        html += '<div style="display:flex; flex-direction:column; line-height:1.2;">';
+        html += '  <span style="font-size:16px; font-weight:600;">' + (rule.custom_name || I18n.t(rule.rule_type)) + '</span>';
+        if (rule.custom_name) {
+            html += '  <span style="font-size:12px; color:var(--text-muted); margin-top:4px;">' + I18n.t('rule_type_label') + ': ' + I18n.t(rule.rule_type) + '</span>';
+        }
+        html += '</div>';
         html += '</div>';
         html += '<span class="status-badge ' + statusClass + '">' + statusText + '</span>';
         html += '</div>';
@@ -464,6 +469,12 @@ const RulesModule = {
         var p = rule ? rule.parameters : null;
         var html = '';
 
+        // 【新增】置顶必填：自定义规则名称
+        html += '<div class="form-group" style="margin-bottom: 20px;">';
+        html += '<label>' + I18n.t('rule_custom_name_label') + ' *</label>';
+        html += '<input type="text" name="custom_name" class="form-control" value="' + (rule && rule.custom_name ? rule.custom_name : '') + '" placeholder="' + I18n.t('rule_custom_name_placeholder') + '" required>';
+        html += '</div>';
+
         // 所有规则统一增加预览区域（除了特定逻辑的预览）
         var previewId = ruleType + '-preview';
         var previewTextId = ruleType + '-preview-text';
@@ -748,6 +759,7 @@ const RulesModule = {
         var ruleType = formData.get('rule_type');
         var ruleId = formData.get('rule_id');
         var sourceId = formData.get('source_id');
+        var customName = formData.get('custom_name'); // 新增捕获用户填写的规则名称
 
         var typeInfo = this.ruleTypes[ruleType];
         var parameters = this.extractParameters(formData, ruleType);
@@ -757,6 +769,7 @@ const RulesModule = {
             var rule = MockData.rules.find(function (r) { return r.rule_id === ruleId; });
             if (rule) {
                 rule.parameters = parameters;
+                rule.custom_name = customName; // 更新
                 App.showToast('success', I18n.t('rule_updated'));
             }
         } else {
@@ -766,6 +779,7 @@ const RulesModule = {
                 source_id: sourceId,
                 rule_type: ruleType,
                 name: I18n.t(ruleType),
+                custom_name: customName, // 保存
                 description: I18n.t('custom_rule_default_desc'),
                 icon: typeInfo.icon,
                 enabled: true,

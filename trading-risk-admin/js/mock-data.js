@@ -6,10 +6,20 @@ const MockData = {
 
     // 公司数据
     companies: [
-        { company_id: 'C001', company_name: 'Alpha Broker', contact_email: 'admin@alpha.com', status: 'active', created_at: '2023-01-15' },
-        { company_id: 'C002', company_name: 'Beta Trading', contact_email: 'admin@beta.com', status: 'active', created_at: '2023-03-20' },
-        { company_id: 'C003', company_name: 'Gamma FX', contact_email: 'admin@gamma.com', status: 'inactive', created_at: '2023-06-10' }
+        { company_id: 'C001', company_name: 'Alpha Broker', contact_email: 'admin@alpha.com', status: 'active', created_at: '2023-01-15', email_enabled: true, email_service_id: 'ES001', from_name: 'Alpha Broker Alerts', from_email: 'alerts@alpha.com' },
+        { company_id: 'C002', company_name: 'Beta Trading', contact_email: 'admin@beta.com', status: 'active', created_at: '2023-03-20', email_enabled: false, email_service_id: null, from_name: '', from_email: '' },
+        { company_id: 'C003', company_name: 'Gamma FX', contact_email: 'admin@gamma.com', status: 'inactive', created_at: '2023-06-10', email_enabled: false, email_service_id: null, from_name: '', from_email: '' }
     ],
+
+    // 邮件发件服务
+    email_services: [
+        { service_id: 'ES001', name: 'SendGrid Production', provider: 'sendgrid', api_key: 'SG.xxxxxxxx', smtp_host: '', smtp_port: 587, smtp_user: '', smtp_pass: '', smtp_tls: true, verified_emails: 'alerts@alpha.com, no-reply@alpha.com', status: 'active', created_at: '2026-01-01' },
+        { service_id: 'ES002', name: 'Mailgun EU Region', provider: 'mailgun', api_key: 'key-xxxxxxxx', smtp_host: '', smtp_port: 587, smtp_user: '', smtp_pass: '', smtp_tls: true, verified_emails: 'support@eu.mailgun.org', status: 'active', created_at: '2026-01-15' },
+        { service_id: 'ES003', name: 'Custom SMTP (Office365)', provider: 'smtp', api_key: '', smtp_host: 'smtp.office365.com', smtp_port: 587, smtp_user: 'alerts@company.com', smtp_pass: '******', smtp_tls: true, verified_emails: 'alerts@company.com', status: 'inactive', created_at: '2026-02-01' }
+    ],
+
+    // 邮件发件服务 ID 计数器
+    emailServiceIdCounter: 4,
 
     // 数据源
     dataSources: [
@@ -21,12 +31,12 @@ const MockData = {
 
     // 用户
     users: [
-        { user_id: 'U001', username: 'sa@system.com', password: 'admin123', email: 'sa@system.com', role: 'super_admin', company_id: null, datasource_ids: [], status: 'active', display_name: '超级管理员', created_at: '2023-01-01' },
-        { user_id: 'U002', username: 'admin@alpha.com', password: 'alpha123', email: 'admin@alpha.com', role: 'company_admin', company_id: 'C001', datasource_ids: ['DS001', 'DS002'], status: 'active', display_name: 'Alpha 管理员', created_at: '2023-01-16' },
-        { user_id: 'U003', username: 'user@alpha.com', password: 'alpha123', email: 'user@alpha.com', role: 'company_user', company_id: 'C001', datasource_ids: ['DS001'], status: 'active', display_name: 'Alpha 操作员', created_at: '2023-02-10' },
-        { user_id: 'U004', username: 'viewer@alpha.com', password: 'alpha123', email: 'viewer@alpha.com', role: 'viewer', company_id: 'C001', datasource_ids: ['DS001', 'DS002'], status: 'active', display_name: 'Alpha 只读', created_at: '2023-03-05' },
-        { user_id: 'U005', username: 'admin@beta.com', password: 'beta123', email: 'admin@beta.com', role: 'company_admin', company_id: 'C002', datasource_ids: ['DS003'], status: 'active', display_name: 'Beta 管理员', created_at: '2023-03-21' },
-        { user_id: 'U006', username: 'viewer@beta.com', password: 'beta123', email: 'viewer@beta.com', role: 'viewer', company_id: 'C002', datasource_ids: ['DS003'], status: 'active', display_name: 'Beta 只读', created_at: '2023-04-15' }
+        { user_id: 'U001', username: 'sa@system.com', password: 'admin123', email: 'sa@system.com', role: 'super_admin', company_id: null, datasource_ids: [], status: 'active', display_name: '超级管理员', created_at: '2023-01-01', notification_email: 'sa@system.com', email_notify_enabled: false },
+        { user_id: 'U002', username: 'admin@alpha.com', password: 'alpha123', email: 'admin@alpha.com', role: 'company_admin', company_id: 'C001', datasource_ids: ['DS001', 'DS002'], status: 'active', display_name: 'Alpha 管理员', created_at: '2023-01-16', notification_email: 'admin@alpha.com', email_notify_enabled: true },
+        { user_id: 'U003', username: 'user@alpha.com', password: 'alpha123', email: 'user@alpha.com', role: 'company_user', company_id: 'C001', datasource_ids: ['DS001'], status: 'active', display_name: 'Alpha 操作员', created_at: '2023-02-10', notification_email: 'user@alpha.com', email_notify_enabled: true },
+        { user_id: 'U004', username: 'viewer@alpha.com', password: 'alpha123', email: 'viewer@alpha.com', role: 'viewer', company_id: 'C001', datasource_ids: ['DS001', 'DS002'], status: 'active', display_name: 'Alpha 只读', created_at: '2023-03-05', notification_email: 'viewer@alpha.com', email_notify_enabled: false },
+        { user_id: 'U005', username: 'admin@beta.com', password: 'beta123', email: 'admin@beta.com', role: 'company_admin', company_id: 'C002', datasource_ids: ['DS003'], status: 'active', display_name: 'Beta 管理员', created_at: '2023-03-21', notification_email: 'admin@beta.com', email_notify_enabled: false },
+        { user_id: 'U006', username: 'viewer@beta.com', password: 'beta123', email: 'viewer@beta.com', role: 'viewer', company_id: 'C002', datasource_ids: ['DS003'], status: 'active', display_name: 'Beta 只读', created_at: '2023-04-15', notification_email: 'viewer@beta.com', email_notify_enabled: false }
     ],
 
     // 用户ID计数器
@@ -368,7 +378,7 @@ const MockData = {
 
     // 角色数据
     roles: [
-        { role_id: 'R001', role_key: 'super_admin', role_name: '超级管理员', color: 'danger', level: 100, is_system: true, permissions: ['view_dashboard', 'manage_rules', 'manage_products', 'view_alerts', 'manage_accounts', 'manage_companies', 'manage_datasources', 'manage_users', 'manage_roles', 'manage_settings'], created_at: '2023-01-01' },
+        { role_id: 'R001', role_key: 'super_admin', role_name: '超级管理员', color: 'danger', level: 100, is_system: true, permissions: ['view_dashboard', 'manage_rules', 'manage_products', 'view_alerts', 'manage_accounts', 'manage_companies', 'manage_datasources', 'manage_users', 'manage_roles', 'manage_settings', 'manage_email_services'], created_at: '2023-01-01' },
         { role_id: 'R002', role_key: 'company_admin', role_name: '公司管理员', color: 'warning', level: 80, is_system: true, permissions: ['view_dashboard', 'manage_rules', 'manage_products', 'view_alerts', 'manage_accounts', 'manage_datasources', 'manage_users'], created_at: '2023-01-01' },
         { role_id: 'R003', role_key: 'company_user', role_name: '公司用户', color: 'info', level: 60, is_system: true, permissions: ['view_dashboard', 'manage_rules', 'manage_products', 'view_alerts'], created_at: '2023-01-01' },
         { role_id: 'R004', role_key: 'viewer', role_name: '只读用户', color: 'secondary', level: 20, is_system: true, permissions: ['view_dashboard', 'view_alerts'], created_at: '2023-01-01' }
@@ -435,6 +445,51 @@ const MockData = {
 
     getRoleByKey(roleKey) {
         return this.roles.find(function (r) { return r.role_key === roleKey; });
+    },
+
+    // 邮件发件服务 CRUD
+    addEmailService(data) {
+        var newService = {
+            service_id: 'ES' + String(this.emailServiceIdCounter++).padStart(3, '0'),
+            name: data.name,
+            provider: data.provider,
+            api_key: data.api_key || '',
+            smtp_host: data.smtp_host || '',
+            smtp_port: data.smtp_port || 587,
+            smtp_user: data.smtp_user || '',
+            smtp_pass: data.smtp_pass || '',
+            smtp_tls: data.smtp_tls !== false,
+            verified_emails: data.verified_emails || '',
+            status: data.status || 'active',
+            created_at: new Date().toISOString().split('T')[0]
+        };
+        this.email_services.push(newService);
+        return newService;
+    },
+
+    updateEmailService(serviceId, data) {
+        var svc = this.email_services.find(function (s) { return s.service_id === serviceId; });
+        if (svc) {
+            Object.assign(svc, data);
+            return svc;
+        }
+        return null;
+    },
+
+    deleteEmailService(serviceId) {
+        // 检查是否还有公司在使用
+        var inUse = this.companies.find(function (c) { return c.email_service_id === serviceId; });
+        if (inUse) return { ok: false, reason: 'in_use', company: inUse.company_name };
+        var idx = this.email_services.findIndex(function (s) { return s.service_id === serviceId; });
+        if (idx > -1) {
+            this.email_services.splice(idx, 1);
+            return { ok: true };
+        }
+        return { ok: false, reason: 'not_found' };
+    },
+
+    getEmailServiceById(serviceId) {
+        return this.email_services.find(function (s) { return s.service_id === serviceId; }) || null;
     }
 };
 

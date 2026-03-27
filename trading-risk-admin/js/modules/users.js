@@ -58,6 +58,7 @@ var UsersModule = {
                                     <th>' + I18n.t('datasources_header') + '</th>\
                                     <th>' + I18n.t('status_header') + '</th>\
                                     <th>' + I18n.t('created_time_header') + '</th>\
+                                    <th>' + I18n.t('email_notification_header') + '</th>\
                                     <th>' + I18n.t('actions_header') + '</th>\
                                 </tr>\
                             </thead>\
@@ -161,6 +162,7 @@ var UsersModule = {
                     <td><span class="badge badge-info" style="font-size: 11px;">' + datasourceNames + '</span></td>\
                     <td><span class="status-dot ' + (u.status === 'active' ? 'active' : 'danger') + '"></span>' + (u.status === 'active' ? I18n.t('status_active') : I18n.t('status_disabled')) + '</td>\
                     <td>' + (u.created_at || '-') + '</td>\
+                    <td><span class="badge badge-' + (u.email_notify_enabled ? 'success' : 'secondary') + '">' + (u.email_notify_enabled ? I18n.t('enabled') : I18n.t('disabled')) + '</span></td>\
                     <td>\
                         <button class="btn btn-sm btn-secondary" onclick="UsersModule.editUser(\'' + u.user_id + '\')">' + I18n.t('edit') + '</button>\
                         ' + (canDelete ? '<button class="btn btn-sm btn-danger" style="margin-left: 4px;" onclick="UsersModule.deleteUser(\'' + u.user_id + '\')">' + I18n.t('delete') + '</button>' : '') + '\
@@ -261,6 +263,30 @@ var UsersModule = {
         var companyId = companySelect.value;
 
         datasourcesContainer.innerHTML = this.renderDatasourceCheckboxes(prefix, companyId, []);
+        if (this.updateEmailSwitchState) this.updateEmailSwitchState(prefix);
+    },
+
+    updateEmailSwitchState: function(prefix) {
+        var companySelect = document.getElementById(prefix + 'Company');
+        var emailSwitch = document.getElementById(prefix + 'EmailNotifyEnabled');
+        var emailWarning = document.getElementById(prefix + 'EmailNotifyWarning');
+        if (!companySelect || !emailSwitch || !emailWarning) return;
+        
+        var companyId = companySelect.value;
+        var isCompanyEmailEnabled = true; // 默认全局可以收或者超级管理员
+        if (companyId) {
+            var c = MockData.companies.find(function(comp){ return comp.company_id === companyId; });
+            if (c && !c.email_enabled) isCompanyEmailEnabled = false;
+        }
+        
+        if (!isCompanyEmailEnabled) {
+            emailSwitch.disabled = true;
+            emailSwitch.checked = false;
+            emailWarning.style.display = 'block';
+        } else {
+            emailSwitch.disabled = false;
+            emailWarning.style.display = 'none';
+        }
     },
 
     saveNewUser: function () {
@@ -393,8 +419,6 @@ var UsersModule = {
             <div class="form-group">\
                 <label class="form-label">所属公司</label>\
                 <select class="form-select" id="editCompany" onchange="UsersModule.onCompanyChange(\'edit\')">' + companyOptions + '</select>\
-            </div>\
-            <div class="form-group">\
                 <label class="form-label">绑定数据源</label>\
                 <div id="editDatasources" class="checkbox-group">' + this.renderDatasourceCheckboxes('edit', u.company_id, u.datasource_ids || []) + '</div>\
             </div>\
@@ -405,7 +429,30 @@ var UsersModule = {
                     <option value="inactive" ' + (u.status === 'inactive' ? 'selected' : '') + '>禁用</option>\
                 </select>\
             </div>\
+            <hr style="margin:16px 0;border-color:var(--border-color);">\
+            <div style="font-weight:600;margin-bottom:12px;"><i data-lucide="mail" style="width:16px;height:16px;vertical-align:-2px;"></i> ' + I18n.t('email_config_section') + '</div>\
+            <div class="form-group">\
+                <label class="form-label">' + I18n.t('notification_email_label') + '</label>\
+                <input type="email" class="form-input" id="editNotifyEmail" value="' + (u.notification_email || u.email) + '">\
+                <small style="color:var(--text-muted);margin-top:4px;display:block;">' + I18n.t('notification_email_help') + '</small>\
+            </div>\
+            <div class="form-group" style="display:flex;align-items:center;justify-content:space-between;">\
+                <div>\
+                    <div style="font-weight:500;">' + I18n.t('email_notify_enabled_label') + '</div>\
+                    <small style="color:var(--text-muted);display:block;">' + I18n.t('email_notify_enabled_desc') + '</small>\
+                    <small id="editEmailNotifyWarning" style="color:var(--danger);display:none;margin-top:4px;">' + I18n.t('company_email_disabled_warning') + '</small>\
+                </div>\
+                <label class="switch">\
+                    <input type="checkbox" id="editEmailNotifyEnabled" ' + (u.email_notify_enabled ? 'checked' : '') + '>\
+                    <span class="switch-slider"></span>\
+                </label>\
+            </div>\
         ');
+
+        setTimeout(function() { 
+            if (typeof lucide !== 'undefined') lucide.createIcons(); 
+            UsersModule.updateEmailSwitchState('edit');
+        }, 50);
 
         // 替换确认按钮事件
         var confirmBtn = document.getElementById('modalConfirm');
@@ -467,6 +514,9 @@ var UsersModule = {
             companyId = null;
         }
 
+        var notifyEmail = document.getElementById('editNotifyEmail') ? document.getElementById('editNotifyEmail').value.trim() : u.notification_email;
+        var emailNotifyEnabled = document.getElementById('editEmailNotifyEnabled') ? document.getElementById('editEmailNotifyEnabled').checked : u.email_notify_enabled;
+
         // 更新用户
         var userData = {
             username: username,
@@ -475,7 +525,9 @@ var UsersModule = {
             role: role,
             company_id: companyId,
             datasource_ids: datasourceIds,
-            status: status
+            status: status,
+            notification_email: notifyEmail || email,
+            email_notify_enabled: emailNotifyEnabled
         };
 
         if (password) {

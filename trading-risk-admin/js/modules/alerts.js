@@ -13,6 +13,48 @@ const AlertsModule = {
         date_end: ''
     },
 
+    // 列配置
+    defaultColumns: [
+        { id: 'alert_id', label: '告警ID', visible: true, fixed: 'left', sortable: false, order: 1 },
+        { id: 'custom_name', label: '规则名称', visible: true, fixed: false, sortable: true, order: 2 },
+        { id: 'company_name', label: '公司', visible: true, fixed: false, sortable: false, order: 3 },
+        { id: 'datasource', label: '数据源', visible: false, fixed: false, sortable: false, order: 4 },
+        { id: 'rule_type', label: '告警类型', visible: true, fixed: false, sortable: false, order: 5 },
+        { id: 'platform', label: '平台', visible: true, fixed: false, sortable: false, order: 6 },
+        { id: 'account_id', label: '账户ID', visible: true, fixed: false, sortable: false, order: 7 },
+        { id: 'product', label: '品种', visible: true, fixed: false, sortable: false, order: 8 },
+        { id: 'trigger_value', label: '触发值', visible: true, fixed: false, sortable: false, order: 9 },
+        { id: 'details', label: '详情', visible: false, fixed: false, sortable: false, order: 10 },
+        { id: 'trigger_time', label: '触发时间', visible: true, fixed: false, sortable: true, order: 11 },
+        { id: 'status', label: '状态', visible: true, fixed: false, sortable: true, order: 12 },
+        { id: 'actions', label: '操作', visible: true, fixed: 'right', sortable: false, order: 13 }
+    ],
+    columns: null,
+    searchKeyword: '',
+    sortBy: 'trigger_time',
+    sortDesc: true,
+
+    init() {
+        if (!this.columns) {
+            var stored = localStorage.getItem('alertColumns_v3');
+            if (stored) {
+                try {
+                    var parsed = JSON.parse(stored);
+                    if (parsed && parsed.length === this.defaultColumns.length) {
+                        // 强制重置: 清除旧版缓存中可能损坏的 fixed 属性
+                        this.columns = this.defaultColumns.map(function(def) {
+                            var saved = parsed.find(function(p){ return p.id === def.id; });
+                            return saved ? Object.assign({}, def, { visible: saved.visible, order: saved.order }) : Object.assign({}, def);
+                        });
+                    }
+                } catch (e) {}
+            }
+            if (!this.columns) {
+                this.columns = JSON.parse(JSON.stringify(this.defaultColumns));
+            }
+        }
+    },
+
     initFilters: function () {
         // 1. 根据用户要求，默认时间为空，不再自动初始化为最近一个月
         /*
@@ -43,6 +85,9 @@ const AlertsModule = {
     },
 
     render() {
+        // 每次渲染重置列配置，确保从 defaultColumns 最新定义重新合并（防止 SPA 内存残留）
+        this.columns = null;
+        this.init();
         this.initFilters();
         var user = MockData.currentUser;
         var sourceIds = MockData.getUserSourceIds(user);
@@ -94,7 +139,12 @@ const AlertsModule = {
         html += '<span style="color:var(--text-muted);"> ' + I18n.t('to') + ' </span>';
         html += '<input type="date" class="filter-select" id="dateEndFilter" value="' + this.filters.date_end + '" onchange="AlertsModule.applyFilters()">';
         html += '</div>';
-        html += '<button class="btn btn-secondary" onclick="AlertsModule.exportData()" style="margin-left: auto;">📥 ' + I18n.t('export') + '</button>';
+        html += '<div class="filter-group" style="margin-left: auto; display: flex; align-items: center; gap: 8px;">';
+        html += '<span class="filter-label">名称搜索：</span>';
+        html += '<input type="text" class="filter-select" id="alertSearchInput" placeholder="搜索规则名称..." value="' + (this.searchKeyword || '') + '" oninput="AlertsModule.onSearch(this.value)" style="width:140px;">';
+        html += '</div>';
+        html += '<button class="btn btn-secondary" onclick="AlertsModule.exportData()">📥 ' + I18n.t('export') + '</button>';
+        html += '<button class="btn btn-secondary" onclick="AlertsModule.openColumnSettings()" title="列设置">⚙️ 列设置</button>';
         html += '</div>';
 
         html += '<div class="card">';
@@ -105,8 +155,25 @@ const AlertsModule = {
         html += '<span class="badge badge-info">' + alerts.length + ' ' + I18n.t('total') + '</span>';
         html += '</div></div>';
         html += '<div class="card-body" style="padding: 0;">';
-        html += '<div class="table-container"><table class="table"><thead><tr>';
-        html += '<th>' + I18n.t('alert_id_header') + '</th><th>' + I18n.t('company_header') + '</th><th>' + I18n.t('datasource_header') + '</th><th>' + I18n.t('rule_type_header') + '</th><th>' + I18n.t('platform_header') + '</th><th>' + I18n.t('account_header') + '</th><th>' + I18n.t('symbol_header') + '</th><th>' + I18n.t('triggered_value_header') + '</th><th>' + I18n.t('details_header') + '</th><th>' + I18n.t('trigger_time_header') + '</th><th>' + I18n.t('status_header') + '</th><th>' + I18n.t('actions_header') + '</th>';
+        var self2 = this;
+        var activeCols = this.columns.slice().sort(function(a,b){return a.order-b.order;}).filter(function(c){return c.visible;});
+        html += '<div style="width:100%;overflow-x:auto;">';
+        html += '<table class="table" style="min-width:900px;width:100%;">';
+        html += '<thead><tr>';
+        activeCols.forEach(function(col) {
+            var thStyle = 'background:var(--bg-color-alt);white-space:nowrap;';
+            if (col.fixed === 'left') thStyle += 'position:sticky;left:0;z-index:3;box-shadow:2px 0 4px rgba(0,0,0,0.12);';
+            if (col.fixed === 'right') thStyle += 'position:sticky;right:0;z-index:3;box-shadow:-2px 0 4px rgba(0,0,0,0.12);';
+            var sortIcon = '';
+            if (col.sortable) {
+                if (self2.sortBy === col.id) {
+                    sortIcon = self2.sortDesc ? ' <span style="cursor:pointer;" onclick="AlertsModule.toggleSort(\'' + col.id + '\')" title="切换排序">↓</span>' : ' <span style="cursor:pointer;" onclick="AlertsModule.toggleSort(\'' + col.id + '\')" title="切换排序">↑</span>';
+                } else {
+                    sortIcon = ' <span style="cursor:pointer;opacity:0.4;" onclick="AlertsModule.toggleSort(\'' + col.id + '\')" title="点击排序">↕</span>';
+                }
+            }
+            html += '<th style="' + thStyle + '">' + col.label + sortIcon + '</th>';
+        });
         html += '</tr></thead><tbody id="alertTableBody">';
         html += this.renderTableRows();
         html += '</tbody></table></div></div></div>';
@@ -114,29 +181,73 @@ const AlertsModule = {
         return html;
     },
 
+    onSearch(val) {
+        this.searchKeyword = (val || '').trim();
+        this.currentPage = 1;
+        this.refresh();
+    },
+
+    toggleSort(colId) {
+        if (this.sortBy === colId) {
+            this.sortDesc = !this.sortDesc;
+        } else {
+            this.sortBy = colId;
+            this.sortDesc = true;
+        }
+        this.refresh();
+    },
+
     getFilteredAlerts() {
         var self = this;
         var user = MockData.currentUser;
         var sourceIds = MockData.getUserSourceIds(user);
-        return MockData.filterBySource(MockData.alerts, sourceIds).filter(function (a) {
-            // 公司筛选
+        var results = MockData.filterBySource(MockData.alerts, sourceIds);
+
+        // 预计算额外字段
+        results.forEach(function(a) {
+            var src = MockData.dataSources.find(function(ds){ return ds.source_id === a.source_id; });
+            a._companyName = src ? Utils.getCompanyName(src.company_id) : '-';
+            a._sourceName = src ? src.source_name : '-';
+            var rule = MockData.rules ? MockData.rules.find(function(r){ return r.rule_id === a.rule_id; }) : null;
+            a._customName = rule ? (rule.custom_name || rule.name || a.rule_type) : a.rule_type;
+        });
+
+        results = results.filter(function(a) {
             if (self.filters.company !== 'all') {
-                var source = MockData.dataSources.find(function (ds) { return ds.source_id === a.source_id; });
-                if (!source || source.company_id !== self.filters.company) return false;
+                var src = MockData.dataSources.find(function(ds){ return ds.source_id === a.source_id; });
+                if (!src || src.company_id !== self.filters.company) return false;
             }
-            // 数据源筛选
             if (self.filters.datasource !== 'all' && a.source_id !== self.filters.datasource) return false;
             if (self.filters.rule_type !== 'all' && a.rule_type !== self.filters.rule_type) return false;
             if (self.filters.status !== 'all' && a.status !== self.filters.status) return false;
             if (self.filters.platform !== 'all' && a.platform !== self.filters.platform) return false;
-
-            // 时间筛选
             var triggerDate = a.trigger_time.split(' ')[0];
             if (self.filters.date_start && triggerDate < self.filters.date_start) return false;
             if (self.filters.date_end && triggerDate > self.filters.date_end) return false;
 
+            // 关键词搜索（规则名称 + 告警ID）
+            if (self.searchKeyword) {
+                var kw = self.searchKeyword.toLowerCase();
+                var matchName = a._customName && a._customName.toLowerCase().indexOf(kw) > -1;
+                var matchId = a.alert_id && a.alert_id.toLowerCase().indexOf(kw) > -1;
+                if (!matchName && !matchId) return false;
+            }
             return true;
         });
+
+        // 排序
+        var sortKey = this.sortBy;
+        var desc = this.sortDesc;
+        results.sort(function(a, b) {
+            var va, vb;
+            if (sortKey === 'custom_name') { va = a._customName || ''; vb = b._customName || ''; }
+            else { va = a[sortKey] || ''; vb = b[sortKey] || ''; }
+            if (va < vb) return desc ? 1 : -1;
+            if (va > vb) return desc ? -1 : 1;
+            return 0;
+        });
+
+        return results;
     },
 
     renderTableRows() {
@@ -145,36 +256,145 @@ const AlertsModule = {
         var start = (this.currentPage - 1) * this.pageSize;
         var paged = filtered.slice(start, start + this.pageSize);
 
-        return paged.map(function (alert) {
-            var typeInfo = self.ruleTypes[alert.rule_type] || { name: alert.rule_type, icon: '<i data-lucide="help-circle"></i>', color: 'secondary' };
+        var activeCols = this.columns.slice().sort(function(a,b){return a.order-b.order;}).filter(function(c){return c.visible;});
+
+        if (paged.length === 0) {
+            return '<tr><td colspan="' + activeCols.length + '" style="text-align:center;padding:32px;color:var(--text-muted);">暂无告警记录</td></tr>';
+        }
+
+        return paged.map(function(alert) {
+            var typeInfo = self.ruleTypes[alert.rule_type] || { name: alert.rule_type, icon: '', color: 'secondary' };
             var statusClass = alert.status === 'new' ? 'danger' : alert.status === 'reviewed' ? 'active' : 'warning';
-            // 获取公司名称
-            var source = MockData.dataSources.find(function (ds) { return ds.source_id === alert.source_id; });
-            var companyName = source ? Utils.getCompanyName(source.company_id) : '-';
+            var source = MockData.dataSources.find(function(ds){ return ds.source_id === alert.source_id; });
+            var companyName = alert._companyName || (source ? Utils.getCompanyName(source.company_id) : '-');
+            var sourceName = alert._sourceName || (source ? source.source_name : '-');
+            var customName = alert._customName || alert.rule_type;
 
             var row = '<tr>';
-            row += '<td><code>' + alert.alert_id + '</code></td>';
-            row += '<td><span class="badge badge-secondary">' + companyName + '</span></td>';
-            var sourceName = source ? source.source_name : '-';
-            row += '<td><span class="badge badge-info">' + sourceName + '</span></td>';
-            row += '<td><span class="badge badge-' + typeInfo.color + '">' + typeInfo.icon + ' ' + typeInfo.name + '</span></td>';
-            row += '<td><span class="badge badge-' + (alert.platform === 'MT4' ? 'primary' : 'success') + '">' + alert.platform + '</span></td>';
-            row += '<td>' + alert.account_id + '</td>';
-            row += '<td>' + alert.product + '</td>';
-            row += '<td class="trigger-value-cell" title="' + self.formatTriggerValue(alert) + '"><strong>' + self.formatTriggerValue(alert) + '</strong></td>';
-            row += '<td>' + self.formatDetails(alert) + '</td>';
-            row += '<td>' + alert.trigger_time + '</td>';
-            row += '<td><span class="status-dot ' + statusClass + '"></span>' + self.getStatusText(alert.status) + '</td>';
-            row += '<td><div style="display: flex; gap: 4px;">';
-            if (alert.status === 'new') {
-                row += '<button class="btn btn-sm btn-success" onclick="AlertsModule.updateStatus(\'' + alert.alert_id + '\', \'reviewed\')">✓</button>';
-                row += '<button class="btn btn-sm btn-secondary" onclick="AlertsModule.updateStatus(\'' + alert.alert_id + '\', \'ignored\')">✕</button>';
-            }
-            row += '<button class="btn btn-sm btn-secondary" onclick="AlertsModule.viewDetail(\'' + alert.alert_id + '\')">' + I18n.t('details') + '</button>';
-            row += '</div></td></tr>';
+            activeCols.forEach(function(col) {
+                var tdStyle = 'white-space:nowrap;';
+                if (col.fixed === 'left') tdStyle += 'position:sticky;left:0;z-index:2;background:var(--card-bg);box-shadow:2px 0 4px rgba(0,0,0,0.12);';
+                if (col.fixed === 'right') tdStyle += 'position:sticky;right:0;z-index:2;background:var(--card-bg);box-shadow:-2px 0 4px rgba(0,0,0,0.12);';
+                var cell = '';
+                switch(col.id) {
+                    case 'alert_id':
+                        cell = '<code style="font-size:11px;">' + alert.alert_id + '</code>' + (alert.status === 'new' ? ' <span class="badge badge-danger" style="font-size:10px;">NEW</span>' : '');
+                        break;
+                    case 'custom_name':
+                        cell = '<strong>' + customName + '</strong>';
+                        break;
+                    case 'company_name':
+                        cell = '<span class="badge badge-secondary">' + companyName + '</span>';
+                        break;
+                    case 'datasource':
+                        cell = '<span class="badge badge-info">' + sourceName + '</span>';
+                        break;
+                    case 'rule_type':
+                        cell = '<span class="badge badge-' + typeInfo.color + '">' + typeInfo.icon + ' ' + typeInfo.name + '</span>';
+                        break;
+                    case 'platform':
+                        cell = '<span class="badge badge-' + (alert.platform === 'MT4' ? 'primary' : 'success') + '">' + alert.platform + '</span>';
+                        break;
+                    case 'account_id':
+                        cell = '<code>' + alert.account_id + '</code>';
+                        break;
+                    case 'product':
+                        cell = '<strong>' + alert.product + '</strong>';
+                        break;
+                    case 'trigger_value':
+                        cell = '<strong>' + self.formatTriggerValue(alert) + '</strong>';
+                        break;
+                    case 'details':
+                        cell = self.formatDetails(alert);
+                        break;
+                    case 'trigger_time':
+                        cell = '<span style="font-size:12px;font-family:monospace;">' + alert.trigger_time + '</span>';
+                        break;
+                    case 'status':
+                        cell = '<span class="status-dot ' + statusClass + '"></span>' + self.getStatusText(alert.status);
+                        break;
+                    case 'actions':
+                        cell = '<div style="display:flex;gap:4px;">';
+                        if (alert.status === 'new') {
+                            cell += '<button class="btn btn-sm btn-success" onclick="AlertsModule.updateStatus(\'' + alert.alert_id + '\', \'reviewed\')">✓</button>';
+                            cell += '<button class="btn btn-sm btn-secondary" onclick="AlertsModule.updateStatus(\'' + alert.alert_id + '\', \'ignored\')">✕</button>';
+                        }
+                        cell += '<button class="btn btn-sm btn-secondary" onclick="AlertsModule.viewDetail(\'' + alert.alert_id + '\')">详情</button>';
+                        cell += '</div>';
+                        break;
+                    default:
+                        cell = '-';
+                }
+                row += '<td style="' + tdStyle + '">' + cell + '</td>';
+            });
+            row += '</tr>';
             return row;
         }).join('');
     },
+
+    openColumnSettings() {
+        var self = this;
+        // 删除已存在弹窗
+        var existing = document.getElementById('colSettingsModal');
+        if (existing) existing.remove();
+
+        var modal = document.createElement('div');
+        modal.className = 'modal active';
+        modal.id = 'colSettingsModal';
+        modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;';
+
+        var sorted = this.columns.slice().sort(function(a,b){return a.order-b.order;});
+        var rows = sorted.map(function(col, idx) {
+            var disabled = col.fixed ? 'disabled' : '';
+            var checked = col.visible ? 'checked' : '';
+            return '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border-color);">' +
+                '<input type="checkbox" id="col_' + col.id + '" ' + checked + ' ' + disabled + ' onchange="AlertsModule._colToggle(\'' + col.id + '\', this.checked)">' +
+                '<label for="col_' + col.id + '" style="flex:1;cursor:' + (disabled ? 'default' : 'pointer') + ';' + (col.fixed ? 'opacity:0.6;' : '') + '">' + col.label + (col.fixed ? ' (固定)' : '') + '</label>' +
+                (!col.fixed ? '<button onclick="AlertsModule._colMove(\'' + col.id + '\',-1)" style="padding:2px 8px;cursor:pointer;" title="上移">↑</button>' +
+                '<button onclick="AlertsModule._colMove(\'' + col.id + '\',1)" style="padding:2px 8px;cursor:pointer;" title="下移">↓</button>' : '') +
+                '</div>';
+        }).join('');
+
+        modal.innerHTML = '<div style="background:var(--card-bg);border-radius:12px;padding:24px;width:380px;max-height:80vh;overflow-y:auto;">' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">' +
+            '<h3 style="margin:0;">⚙️ 列设置</h3>' +
+            '<button onclick="document.getElementById(\'colSettingsModal\').remove()" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--text-muted);">✕</button>' +
+            '</div>' +
+            '<p style="font-size:13px;color:var(--text-muted);margin-bottom:12px;">勾选显示的列，点击↑↓调整顺序</p>' +
+            rows +
+            '<div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end;">' +
+            '<button class="btn btn-secondary" onclick="document.getElementById(\'colSettingsModal\').remove()">取消</button>' +
+            '<button class="btn btn-primary" onclick="AlertsModule._colSave()">保存</button>' +
+            '</div></div>';
+        document.body.appendChild(modal);
+    },
+
+    _colToggle(colId, visible) {
+        var col = this.columns.find(function(c){ return c.id === colId; });
+        if (col) col.visible = visible;
+    },
+
+    _colMove(colId, dir) {
+        var sorted = this.columns.slice().sort(function(a,b){return a.order-b.order;});
+        var nonFixed = sorted.filter(function(c){ return !c.fixed; });
+        var idx = nonFixed.findIndex(function(c){ return c.id === colId; });
+        var swapIdx = idx + dir;
+        if (swapIdx < 0 || swapIdx >= nonFixed.length) return;
+        var tmp = nonFixed[idx].order;
+        nonFixed[idx].order = nonFixed[swapIdx].order;
+        nonFixed[swapIdx].order = tmp;
+        // 刷新弹窗
+        document.getElementById('colSettingsModal').remove();
+        this.openColumnSettings();
+    },
+
+    _colSave() {
+        localStorage.setItem('alertColumns_v3', JSON.stringify(this.columns));
+        document.getElementById('colSettingsModal').remove();
+        this.refresh();
+    },
+
+
 
     renderPagination() {
         var total = this.getFilteredAlerts().length;

@@ -21,6 +21,7 @@ var Router = {
         'datasources': { title: 'datasource_management', breadcrumb: 'multi_tenant / datasource_management', render: function () { return DatasourcesModule.render(); }, permission: 'manage_datasources' },
         'users': { title: 'user_management', breadcrumb: 'multi_tenant / user_management', render: function () { return UsersModule.render(); }, permission: 'manage_users' },
         'roles': { title: 'role_management', breadcrumb: 'multi_tenant / role_management', render: function () { return RolesModule.render(); }, permission: 'manage_roles' },
+        'email-services': { title: 'email_services_title', breadcrumb: 'system_manage / email_services_title', render: function () { return EmailServicesModule.render(); }, permission: 'manage_email_services' },
         'settings': { title: 'global_config', breadcrumb: 'param_config', render: function () { return SettingsModule.render(); } },
         'push-styles': { title: 'push_styles', breadcrumb: 'system_manage / push_styles_management', render: function () { return PushStylesModule.render(); } },
         'profile': { title: 'profile', breadcrumb: 'user_center / profile', render: function () { return ProfileModule.render(); } },

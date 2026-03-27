@@ -1493,15 +1493,19 @@ const RulesModule = {
 
         var currentSourceName = currentSource ? currentSource.source_name + ' (' + currentSource.platform_type + ')' : currentSourceId;
 
-        var html = '<div class="clone-modal-wrap">';
-
-        html += '<div class="clone-steps"><span class="clone-step-active">① 选择目标</span><span class="clone-step">② 预览规则</span><span class="clone-step">③ 确认克隆</span></div>';
-
-        html += '<div class="clone-route-box">';
-
-        html += '<div class="clone-route-row"><span class="clone-route-label">来源服务器</span><span class="clone-route-val">' + currentSourceName + '</span></div>';
-
-        html += '<div class="clone-route-arrow"><div class="clone-route-arrow-icon">↓ 将克隆到</div></div>';
+                var html = '<div class="clone-modal-wrap">';
+        html += '<div class="clone-steps"><span class="clone-step-done">✓ 选择目标</span><span class="clone-step-done">✓ 预览规则</span><span class="clone-step-active">③ 确认克隆</span></div>';
+        html += '<div class="clone-confirm-box" style="border-color:var(--danger-color); background:rgba(239, 68, 68, 0.04);">';
+        html += '<div class="clone-confirm-icon" style="color:var(--danger-color);"><i data-lucide="alert-triangle" style="width:40px;height:40px;"></i></div>';
+        html += '<div class="clone-confirm-desc" style="font-size:16px; margin: 16px 0;">即将克隆 <strong>' + data.length + '</strong> 条规则到 <strong style="color:var(--danger-color);">"' + targetName + '"</strong></div>';
+        html += '<div class="clone-confirm-note" style="margin-bottom:12px;">此操作将立即在目标服务器生成规则配置。<br>请在下方手动输入目标服务器名称以防误操作：</div>';
+        html += '<input type="text" class="form-control" id="batchCloneConfirmInput" placeholder="输入：' + targetName + '" autocomplete="off" style="text-align:center; font-size:16px; padding:12px; font-weight:bold; letter-spacing:1px; max-width:280px; margin:0 auto;">';
+        html += '<div class="clone-confirm-tip" style="margin-top:12px;">* 内容完全匹配后，克隆按钮将被激活</div>';
+        html += '</div>';
+        html += '<div class="modal-actions clone-modal-actions">';
+        html += '<button class="btn btn-secondary" onclick="RulesModule._showBatchStep2FromState(\'' + ruleType + '\')">← 返回预览</button>';
+        html += '<button class="btn btn-danger" id="batchCloneConfirmBtn" onclick="RulesModule._executeBatchClone(\'' + ruleType + '\')" disabled><i data-lucide="zap"></i> 开始执行克隆</button>';
+        html += '</div></div>';
 
         html += '<div class="clone-route-row"><span class="clone-route-label">目标服务器</span>';
 
@@ -1775,16 +1779,16 @@ const RulesModule = {
 
         var html = '<div class="clone-modal-wrap">';
         html += '<div class="clone-steps"><span class="clone-step-done">✓ 选择目标</span><span class="clone-step-done">✓ 预览规则</span><span class="clone-step-active">③ 确认克隆</span></div>';
-        html += '<div class="clone-confirm-box">';
-        html += '<div class="clone-confirm-icon">⚠️</div>';
+        html += '<div class="clone-confirm-box" style="border-color:var(--danger-color); background:rgba(239, 68, 68, 0.04);">';
+        html += '<div class="clone-confirm-icon"><i data-lucide="alert-triangle" style="width:40px;height:40px;color:var(--danger-color);"></i></div>';
         html += '<div class="clone-confirm-desc">即将克隆 <strong>' + count + '</strong> 条规则到 <strong>"' + targetSource.source_name + '"</strong></div>';
         html += '<div class="clone-confirm-note">请在下方输入目标服务器名称以确认操作：</div>';
-        html += '<input type="text" class="form-control" id="batchCloneConfirmInput" placeholder="' + targetSource.source_name + '" autocomplete="off">';
+        html += '<input type="text" class="form-control" id="batchCloneConfirmInput" style="text-align:center; font-size:16px; padding:12px; font-weight:bold; letter-spacing:1px; max-width:280px; margin:0 auto;" placeholder="' + targetSource.source_name + '" autocomplete="off">';
         html += '<div class="clone-confirm-tip">* 输入内容与服务器名称完全一致后，方可点击确认</div>';
         html += '</div>';
         html += '<div class="modal-actions" style="margin-top:20px;">';
-        html += '<button class="btn btn-secondary" onclick="RulesModule._showBatchStep2FromState(\'' + ruleType + '\')">← 返回</button>';
-        html += '<button class="btn btn-danger" id="batchCloneConfirmBtn" disabled onclick="RulesModule._executeBatchClone(\'' + ruleType + '\')">我确认，开始克隆</button>';
+        html += '<button class="btn btn-secondary" onclick="RulesModule._showBatchStep2FromState(\'' + ruleType + '\')">← 返回预览</button>';
+        html += '<button class="btn btn-danger" id="batchCloneConfirmBtn" disabled onclick="RulesModule._executeBatchClone(\'' + ruleType + '\')"><i data-lucide="zap"></i> 开始执行克隆</button>';
         html += '</div></div>';
 
         App.showModal('批量克隆规则', html);

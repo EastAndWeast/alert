@@ -24,10 +24,11 @@ const AlertsModule = {
         { id: 'account_id', label: '账户ID', visible: true, fixed: false, sortable: false, order: 7 },
         { id: 'product', label: '品种', visible: true, fixed: false, sortable: false, order: 8 },
         { id: 'trigger_value', label: '触发值', visible: true, fixed: false, sortable: false, order: 9 },
-        { id: 'details', label: '详情', visible: false, fixed: false, sortable: false, order: 10 },
-        { id: 'trigger_time', label: '触发时间', visible: true, fixed: false, sortable: true, order: 11 },
-        { id: 'status', label: '状态', visible: true, fixed: false, sortable: true, order: 12 },
-        { id: 'actions', label: '操作', visible: true, fixed: 'right', sortable: false, order: 13 }
+        { id: 'details', label: I18n.t('details_header') || '详情', visible: false, fixed: false, sortable: false, order: 10 },
+        { id: 'trigger_time', label: I18n.t('trigger_time_header') || '触发时间', visible: true, fixed: false, sortable: true, order: 11 },
+        { id: 'server_time', label: I18n.t('server_time_header') || '服务器时间', visible: true, fixed: false, sortable: false, order: 12 },
+        { id: 'status', label: I18n.t('status_header') || '状态', visible: true, fixed: false, sortable: true, order: 13 },
+        { id: 'actions', label: I18n.t('actions_header') || '操作', visible: true, fixed: 'right', sortable: false, order: 14 }
     ],
     columns: null,
     searchKeyword: '',
@@ -36,7 +37,7 @@ const AlertsModule = {
 
     init() {
         if (!this.columns) {
-            var stored = localStorage.getItem('alertColumns_v3');
+            var stored = localStorage.getItem('alertColumns_v4');
             if (stored) {
                 try {
                     var parsed = JSON.parse(stored);
@@ -130,14 +131,14 @@ const AlertsModule = {
         html += '</select></div>';
         html += '<div class="filter-group"><span class="filter-label">' + I18n.t('platform_label') + '：</span>';
         html += '<select class="filter-select" id="platformFilter" onchange="AlertsModule.applyFilters()">';
-        html += '<option value="all">' + I18n.t('all_platforms') + '</option>';
         html += '<option value="MT4">MT4</option>';
         html += '<option value="MT5">MT5</option>';
         html += '</select></div>';
         html += '<div class="filter-group"><span class="filter-label">' + I18n.t('time_range_label') + '：</span>';
         html += '<input type="date" class="filter-select" id="dateStartFilter" value="' + this.filters.date_start + '" onchange="AlertsModule.applyFilters()">';
-        html += '<span style="color:var(--text-muted);"> ' + I18n.t('to') + ' </span>';
+        html += '<span style="color:var(--text-muted);">-</span>';
         html += '<input type="date" class="filter-select" id="dateEndFilter" value="' + this.filters.date_end + '" onchange="AlertsModule.applyFilters()">';
+        html += '<span style="font-size:12px;color:var(--text-muted);margin-left:4px;">' + (I18n.t('time_filter_utc_note') || 'ℹ️ 时间筛选基于 UTC+0') + '</span>';
         html += '</div>';
         html += '<div class="filter-group" style="margin-left: auto; display: flex; align-items: center; gap: 8px;">';
         html += '<span class="filter-label">名称搜索：</span>';
@@ -310,6 +311,20 @@ const AlertsModule = {
                     case 'trigger_time':
                         cell = '<span style="font-size:12px;font-family:monospace;">' + alert.trigger_time + '</span>';
                         break;
+                    case 'server_time':
+                        var offsetMin = alert.server_timezone_offset || 0;
+                        var sign = offsetMin >= 0 ? '+' : '-';
+                        var hours = Math.floor(Math.abs(offsetMin) / 60);
+                        var mins = Math.abs(offsetMin) % 60;
+                        var utcStr = 'UTC' + sign + hours + (mins > 0 ? ':' + mins : '');
+                        
+                        var dt = new Date(alert.trigger_time.replace(' ', 'T') + 'Z');
+                        var serverDate = new Date(dt.getTime() + offsetMin * 60000);
+                        var sTimeStr = serverDate.toISOString().replace('T', ' ').substring(0, 19);
+                        
+                        cell = '<span style="font-size:12px;display:block;font-family:monospace;">' + sTimeStr + '</span>' +
+                               '<span style="font-size:10px;color:var(--text-muted);">' + utcStr + '</span>';
+                        break;
                     case 'status':
                         cell = '<span class="status-dot ' + statusClass + '"></span>' + self.getStatusText(alert.status);
                         break;
@@ -389,7 +404,8 @@ const AlertsModule = {
     },
 
     _colSave() {
-        localStorage.setItem('alertColumns_v3', JSON.stringify(this.columns));
+        var toSave = this.columns.map(function(c){ return { id: c.id, visible: c.visible, order: c.order }; });
+        localStorage.setItem('alertColumns_v4', JSON.stringify(toSave));
         document.getElementById('colSettingsModal').remove();
         this.refresh();
     },

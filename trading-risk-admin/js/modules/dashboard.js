@@ -164,7 +164,11 @@ var DashboardModule = {
                         I18n.t('nop_limit'),
                         I18n.t('watch_list'),
                         I18n.t('reverse_positions'),
-                        I18n.t('deposit_withdrawal')
+                        I18n.t('deposit_withdrawal'),
+                        I18n.t('blacklist'),
+                        I18n.t('fake_ip'),
+                        I18n.t('hedge_ip'),
+                        I18n.t('dsl_limit')
                     ],
                     datasets: [{
                         data: [
@@ -178,9 +182,13 @@ var DashboardModule = {
                             alertsByType.nop_limit || 0,
                             alertsByType.watch_list || 0,
                             alertsByType.reverse_positions || 0,
-                            alertsByType.deposit_withdrawal || 0
+                            alertsByType.deposit_withdrawal || 0,
+                            alertsByType.blacklist || 0,
+                            alertsByType.fake_ip || 0,
+                            alertsByType.hedge_ip || 0,
+                            alertsByType.dsl_limit || 0
                         ],
-                        backgroundColor: ['#ef4444', '#f97316', '#3b82f6', '#f59e0b', '#8b5cf6', '#06b6d4', '#6366f1', '#6c757d', '#ec4899', '#14b8a6', '#10b981'],
+                        backgroundColor: ['#ef4444', '#f97316', '#3b82f6', '#f59e0b', '#8b5cf6', '#06b6d4', '#6366f1', '#6c757d', '#ec4899', '#14b8a6', '#10b981', '#1e293b', '#2563eb', '#dc2626', '#eab308'],
                         borderWidth: 0
                     }]
                 },

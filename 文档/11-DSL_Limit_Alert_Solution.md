@@ -46,3 +46,20 @@
 | `PnL_Lower_Limit` | Float | 亏损下限报警阈值（负数） | `-10000.0` |
 | `Data_Source` | Enum/Array | 要监控的服务器组或白标源 | `["Server_A_Live", "Server_B_Live"]` |
 | `Calculation_Timezone` | String | 判定前一天 EOD 的标准时区 | `UTC+2` |
+
+---
+
+## 4. 概要和触发值计算与 UI 呈现逻辑
+
+在告警记录列表中，系统会将生硬的数字转换成富文本以提升可读性和分析效率：
+
+### Trigger Value (触发值) 计算逻辑
+- **取值**: 提取报文中的 `trigger_value` 字段。
+- **呈现样式**: 使用高亮 Tag 显示。若金额为负数（亏损超限），呈现红色 `<span class="badge badge-danger">`；若金额为正数（盈利超限），呈现绿色 `<span class="badge badge-success">`。
+- **拼接结构**: `<span class="badge ...">$\<value> / \<limit> (\<ratio>%)</span>`
+- **示例展示**: `<span class="badge badge-danger">$-15,000 / -10k (150%) ⚠️</span>`
+
+### Details (概要详情) 抽壳算法
+- 提取报文 `details.limit` 字段，用于在卡片或表格第二列简要说明阈值。
+- 后台拼接逻辑为：`Limit: $[\<details.limit>]`。
+- 详情弹框内会展示详细的“盈亏防线水滴图”和限额距离刻度。

@@ -318,7 +318,11 @@ const MockData = {
                 nop_limit: alerts.filter(function (a) { return a.rule_type === 'nop_limit'; }).length,
                 watch_list: alerts.filter(function (a) { return a.rule_type === 'watch_list'; }).length,
                 reverse_positions: alerts.filter(function (a) { return a.rule_type === 'reverse_positions'; }).length,
-                deposit_withdrawal: alerts.filter(function (a) { return a.rule_type === 'deposit_withdrawal'; }).length
+                deposit_withdrawal: alerts.filter(function (a) { return a.rule_type === 'deposit_withdrawal'; }).length,
+                blacklist: alerts.filter(function (a) { return a.rule_type === 'blacklist'; }).length,
+                fake_ip: alerts.filter(function (a) { return a.rule_type === 'fake_ip'; }).length,
+                hedge_ip: alerts.filter(function (a) { return a.rule_type === 'hedge_ip'; }).length,
+                dsl_limit: alerts.filter(function (a) { return a.rule_type === 'dsl_limit'; }).length
             },
             alerts_trend: [
                 { date: '01/09', count: 8 }, { date: '01/10', count: 12 }, { date: '01/11', count: 6 },

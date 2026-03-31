@@ -9,6 +9,7 @@ const AlertsModule = {
         platform: 'all',
         company: 'all',
         datasource: 'all',
+        alert_id: '',
         date_start: '',
         date_end: ''
     },
@@ -70,7 +71,7 @@ const AlertsModule = {
         */
     },
 
-    // 告警类型映射
+    // 告警类型映射 (包含了旧的11种和新增的4种原生规则)
     ruleTypes: {
         'large_trade_lots': { name: 'Large Trade (手数)', icon: '<i data-lucide="coins" style="width:14px;height:14px;vertical-align:-2px;stroke:#818cf8"></i>', color: 'primary' },
         'large_trade_usd': { name: 'Large Trade (USD)', icon: '<i data-lucide="dollar-sign" style="width:14px;height:14px;vertical-align:-2px;stroke:#34d399"></i>', color: 'success' },
@@ -82,7 +83,11 @@ const AlertsModule = {
         'nop_limit': { name: 'NOP Limit', icon: '<i data-lucide="ruler" style="width:14px;height:14px;vertical-align:-2px;stroke:#64748b"></i>', color: 'dark' },
         'watch_list': { name: 'Watch List', icon: '<i data-lucide="eye" style="width:14px;height:14px;vertical-align:-2px;stroke:#818cf8"></i>', color: 'primary' },
         'reverse_positions': { name: 'Reverse Positions', icon: '<i data-lucide="arrow-left-right" style="width:14px;height:14px;vertical-align:-2px;stroke:#fbbf24"></i>', color: 'warning' },
-        'deposit_withdrawal': { name: 'Deposit & Withdrawal', icon: '<i data-lucide="credit-card" style="width:14px;height:14px;vertical-align:-2px;stroke:#34d399"></i>', color: 'success' }
+        'deposit_withdrawal': { name: 'Deposit & Withdrawal', icon: '<i data-lucide="credit-card" style="width:14px;height:14px;vertical-align:-2px;stroke:#34d399"></i>', color: 'success' },
+        'blacklist': { name: 'IP/CID 黑名单', icon: '<i data-lucide="shield-alert" style="width:14px;height:14px;vertical-align:-2px;stroke:#0f172a"></i>', color: 'dark' },
+        'fake_ip': { name: '伪装 IP', icon: '<i data-lucide="globe" style="width:14px;height:14px;vertical-align:-2px;stroke:#3b82f6"></i>', color: 'info' },
+        'hedge_ip': { name: '监控异常对冲', icon: '<i data-lucide="git-compare" style="width:14px;height:14px;vertical-align:-2px;stroke:#ef4444"></i>', color: 'danger' },
+        'dsl_limit': { name: '单日结算限额', icon: '<i data-lucide="activity" style="width:14px;height:14px;vertical-align:-2px;stroke:#eab308"></i>', color: 'warning' }
     },
 
     render() {
@@ -138,14 +143,20 @@ const AlertsModule = {
         html += '<input type="date" class="filter-select" id="dateStartFilter" value="' + this.filters.date_start + '" onchange="AlertsModule.applyFilters()">';
         html += '<span style="color:var(--text-muted);">-</span>';
         html += '<input type="date" class="filter-select" id="dateEndFilter" value="' + this.filters.date_end + '" onchange="AlertsModule.applyFilters()">';
-        html += '<span style="font-size:12px;color:var(--text-muted);margin-left:4px;">' + (I18n.t('time_filter_utc_note') || 'ℹ️ 时间筛选基于 UTC+0') + '</span>';
+        html += '<span title="' + (I18n.t('time_filter_utc_note') || '时间筛选基于 UTC+0') + '" style="cursor:help;margin-left:6px;font-size:14px;opacity:0.6;">ℹ️</span>';
         html += '</div>';
+        
+        // 新增：告警ID专属搜索框
+        html += '<div class="filter-group" style="margin-left: 12px;"><span class="filter-label">告警ID：</span>';
+        html += '<input type="text" class="filter-select" id="alertIdFilter" placeholder="搜索告警ID..." value="' + (this.filters.alert_id || '') + '" oninput="AlertsModule.applyFilters()" style="width:130px;">';
+        html += '</div>';
+
         html += '<div class="filter-group" style="margin-left: auto; display: flex; align-items: center; gap: 8px;">';
-        html += '<span class="filter-label">名称搜索：</span>';
-        html += '<input type="text" class="filter-select" id="alertSearchInput" placeholder="搜索规则名称..." value="' + (this.searchKeyword || '') + '" oninput="AlertsModule.onSearch(this.value)" style="width:140px;">';
+        html += '<span class="filter-label">类型/名称：</span>';
+        html += '<input type="text" class="filter-select" id="alertSearchInput" placeholder="模糊搜索..." value="' + (this.searchKeyword || '') + '" oninput="AlertsModule.onSearch(this.value)" style="width:140px;">';
         html += '</div>';
-        html += '<button class="btn btn-secondary" onclick="AlertsModule.exportData()">📥 ' + I18n.t('export') + '</button>';
-        html += '<button class="btn btn-secondary" onclick="AlertsModule.openColumnSettings()" title="列设置">⚙️ 列设置</button>';
+        html += '<button class="btn btn-secondary" onclick="AlertsModule.exportData()" style="margin-left:8px;">📥 ' + I18n.t('export') + '</button>';
+        html += '<button class="btn btn-secondary" onclick="AlertsModule.openColumnSettings()" title="列设置" style="margin-left:8px;">⚙️ 列设置</button>';
         html += '</div>';
 
         html += '<div class="card">';
@@ -226,12 +237,17 @@ const AlertsModule = {
             if (self.filters.date_start && triggerDate < self.filters.date_start) return false;
             if (self.filters.date_end && triggerDate > self.filters.date_end) return false;
 
-            // 关键词搜索（规则名称 + 告警ID）
+            // 专属ID精确过滤
+            if (self.filters.alert_id && a.alert_id) {
+                if (a.alert_id.toLowerCase().indexOf(self.filters.alert_id.toLowerCase()) === -1) return false;
+            }
+
+            // 右侧关键词搜索（现在主要查名称或账户）
             if (self.searchKeyword) {
                 var kw = self.searchKeyword.toLowerCase();
                 var matchName = a._customName && a._customName.toLowerCase().indexOf(kw) > -1;
-                var matchId = a.alert_id && a.alert_id.toLowerCase().indexOf(kw) > -1;
-                if (!matchName && !matchId) return false;
+                var matchAccount = a.account_id && a.account_id.toLowerCase().indexOf(kw) > -1;
+                if (!matchName && !matchAccount) return false;
             }
             return true;
         });
@@ -541,6 +557,37 @@ const AlertsModule = {
             return parts.join(' | ');
         }
 
+        // 11. Blacklist
+        if (t === 'blacklist') {
+            return (d.match_type ? '<span class="badge badge-dark" style="margin-right:4px;">' + d.match_type + '</span>' : '') + ' <span style="font-family:monospace;">' + v + '</span>';
+        }
+
+        // 12. Fake IP
+        if (t === 'fake_ip') {
+            var parts = ['<span style="font-family:monospace;">' + v + '</span>'];
+            if (d.current_city) parts.push('<span style="color:var(--danger-color);">📍 ' + d.current_city + '</span>');
+            return parts.join(' <span style="opacity:0.4;">|</span> ');
+        }
+
+        // 13. Hedge IP
+        if (t === 'hedge_ip') {
+            var parts = [];
+            if (d.lots) parts.push('<strong style="color:var(--danger-color);">' + d.lots + ' ' + I18n.t('lot_unit') + '</strong>');
+            if (d.time_diff !== undefined) parts.push('<span style="color:var(--warning-color);">⏱️ ' + d.time_diff + 's</span>');
+            if (d.symbol) parts.push(d.symbol);
+            return parts.join(' <span style="opacity:0.4;">|</span> ') || v;
+        }
+
+        // 14. DSL Limit
+        if (t === 'dsl_limit') {
+            var isPos = v >= 0;
+            var valPrefix = isPos ? '+$' : '-$';
+            var valColor = isPos ? 'var(--success-color)' : 'var(--danger-color)';
+            var parts = ['<span style="color:' + valColor + ';font-weight:bold;font-size:14px;">' + valPrefix + Utils.formatNumber(Math.abs(v)) + '</span>'];
+            if (d.limit !== undefined) parts.push('<span style="font-size:12px;opacity:0.8;">限额: ' + d.limit + '</span>');
+            return parts.join(' <span style="opacity:0.4;">|</span> ');
+        }
+
         return v;
     },
 
@@ -566,6 +613,13 @@ const AlertsModule = {
         if (t === 'watch_list') return d.action + ' ' + d.direction;
         if (t === 'reverse_positions') return d.close_direction + '→' + d.open_direction;
         if (t === 'deposit_withdrawal') return d.type;
+
+        // 新增 4 种类型明细
+        if (t === 'blacklist') return d.reason ? d.reason : I18n.t('system_blocked') || '系统已拦截';
+        if (t === 'fake_ip') return (d.base_location || 'Unknown') + ' ✈️ ' + (d.current_city ? d.current_city + ' (' + (d.isp_type || 'Unknown ISP') + ')' : '异地登录');
+        if (t === 'hedge_ip') return '账号对冲检测: ' + (d.account_a || '?') + ' ↔ ' + (d.account_b || '?');
+        if (t === 'dsl_limit') return '触发单日结算阈值限制';
+
         return '-';
     },
 
@@ -580,6 +634,9 @@ const AlertsModule = {
         }
         if (document.getElementById('dateEndFilter')) {
             this.filters.date_end = document.getElementById('dateEndFilter').value;
+        }
+        if (document.getElementById('alertIdFilter')) {
+            this.filters.alert_id = document.getElementById('alertIdFilter').value.trim();
         }
         this.currentPage = 1;
         this.refresh();
@@ -653,6 +710,65 @@ const AlertsModule = {
         o += '<div class=\'param-item\'><div class=\'param-label\'>' + I18n.t('trigger_time_label') + '</div><div class=\'param-value\'>' + alert.trigger_time + '</div></div>';
         o += '<div class=\'param-item\'><div class=\'param-label\'>ID</div><div class=\'param-value\'><code style=\'font-size:11px;\'>' + alert.alert_id + '</code></div></div>';
         o += '</div></section>';
+
+        // 添加 4 大风控新规则的独立事故溯源面板
+        var EVENT_TYPES = ['blacklist', 'fake_ip', 'hedge_ip', 'dsl_limit'];
+        if (EVENT_TYPES.indexOf(alert.rule_type) > -1) {
+            o += '<section>';
+            o += '<h4 style=\'margin:0 0 8px;border-left:4px solid var(--danger-color);padding-left:8px;\'><i data-lucide=\'activity\' style=\'width:14px;height:14px;vertical-align:-2px;stroke:var(--danger-color);\'></i> 事件分析 (Event Investigation)</h4>';
+            o += '<div style=\'background:var(--card-bg);border:1px solid var(--border-color);padding:var(--spacing-md);border-radius:6px;font-size:13px;\'>';
+            
+            if (alert.rule_type === 'blacklist') {
+                o += '<div style="margin-bottom:8px;"><strong style="color:var(--danger-color);">被拦截对象 (' + (d.match_type || '未知类型') + '):</strong> <code style="font-size:14px;">' + (d.matched_value || alert.trigger_value) + '</code></div>';
+                o += '<div style="margin-bottom:8px;"><strong>拦截理由:</strong> ' + (d.reason || '-') + '</div>';
+                if (d.ip_at_login) o += '<div><strong>关联登录IP:</strong> <code>' + d.ip_at_login + '</code></div>';
+            }
+            if (alert.rule_type === 'fake_ip') {
+                var isDatacenter = d.alert_type === 'datacenter';
+                if (isDatacenter) {
+                    o += '<div style="background:var(--danger-color-light);color:var(--danger-color-dark);padding:8px;border-radius:4px;margin-bottom:12px;"><strong>⚠️ 检测为机房/代理网络节点，高度疑似脚本量化或套利。</strong></div>';
+                } else if (d.alert_type === 'roaming') {
+                    o += '<div style="background:var(--warning-color-light);color:var(--warning-color-dark);padding:8px;border-radius:4px;margin-bottom:12px;"><strong>⚠️ 检测到远距离异地漫游登录，或与常驻地不符。</strong></div>';
+                }
+                o += '<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">';
+                o += '<div style="flex:1;padding:12px;background:rgba(0,0,0,0.02);border-radius:6px;text-align:center;"><strong>常驻环境基线</strong><br><span style="color:var(--text-muted);">' + (d.base_location || '-') + '</span></div>';
+                o += '<div>✈️</div>';
+                o += '<div style="flex:1;padding:12px;background:rgba(239, 68, 68, 0.05);border:1px solid rgba(239, 68, 68, 0.2);border-radius:6px;text-align:center;"><strong>检测到的异常环境</strong><br><strong style="color:var(--danger-color);">' + (d.current_city || '') + (d.current_country ? ', ' + d.current_country : '') + '</strong></div>';
+                o += '</div>';
+                o += '<table style="width:100%;font-size:12px;"><tr><td style="color:var(--text-muted);width:80px;padding:4px 0;">探测 IP</td><td><code>' + (d.ip || alert.trigger_value) + '</code></td></tr>';
+                if (d.isp_type) o += '<tr><td style="color:var(--text-muted);padding:4px 0;">ISP 属性</td><td>' + d.isp_type + '</td></tr>';
+                if (d.provider) o += '<tr><td style="color:var(--text-muted);padding:4px 0;">网络提供商</td><td>' + d.provider + '</td></tr></table>';
+            }
+            if (alert.rule_type === 'hedge_ip') {
+                o += '<div style="text-align:center;margin-bottom:8px;color:var(--text-muted);">在极端的时间窗口内发生的多向交易博弈，涉嫌联合欺诈/套利。</div>';
+                o += '<div style="display:flex;align-items:center;justify-content:center;gap:16px;margin:16px 0;">';
+                o += '<div style="padding:12px;border:1px solid ' + (d.direction_a === 'BUY' ? '#22c55e' : '#ef4444') + ';border-radius:6px;text-align:center;background:var(--card-bg);"><strong>' + (d.account_a || '?') + '</strong><br><span style="font-weight:bold;color:' + (d.direction_a === 'BUY' ? '#22c55e' : '#ef4444') + '">' + (d.direction_a || '') + ' ' + (d.lots || '-') + ' 手</span></div>';
+                o += '<div style="text-align:center;"><div style="font-size:24px;">⚔️</div><div style="font-size:11px;color:var(--danger-color);margin-top:4px;">仅差 <strong>' + (d.time_diff !== undefined ? d.time_diff : '-') + '</strong> 秒</div></div>';
+                o += '<div style="padding:12px;border:1px solid ' + (d.direction_b === 'BUY' ? '#22c55e' : '#ef4444') + ';border-radius:6px;text-align:center;background:var(--card-bg);"><strong>' + (d.account_b || '?') + '</strong><br><span style="font-weight:bold;color:' + (d.direction_b === 'BUY' ? '#22c55e' : '#ef4444') + '">' + (d.direction_b || '') + ' ' + (d.lots || '-') + ' 手</span></div>';
+                o += '</div>';
+                o += '<div style="text-align:center;font-size:12px;padding:12px;background:rgba(0,0,0,0.03);border-radius:6px;margin-top:12px;">公用的可疑资源标识 (IP): <code style="font-size:13px;">' + (d.shared_ip || d.ip_a || alert.trigger_value) + '</code><br>交易品种: <strong>' + (d.symbol || '-') + '</strong></div>';
+                if (d.provider) o += '<div style="text-align:center;font-size:11px;color:var(--text-muted);margin-top:6px;">IP 归属库信息: ' + d.provider + '</div>';
+            }
+            if (alert.rule_type === 'dsl_limit') {
+                var limitVal = d.limit || 0;
+                var currentVal = alert.trigger_value || 0;
+                var isBreached = limitVal < 0 ? currentVal <= limitVal : currentVal >= limitVal;
+                var progressPct = limitVal === 0 ? 100 : Math.min(Math.abs(currentVal / limitVal) * 100, 100);
+                
+                o += '<div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span>当前日结浮动盈亏:</span> <strong style="font-size:18px;color:' + (currentVal >= 0 ? 'var(--success-color)' : 'var(--danger-color)') + ';">' + (currentVal >= 0 ? '+$' : '-$') + Utils.formatNumber(Math.abs(currentVal)) + '</strong></div>';
+                o += '<div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:12px;color:var(--text-muted);margin-top:12px;"><span>单日限额红线 (Limit):</span> <span style="font-family:monospace;font-weight:600;">' + limitVal + '</span></div>';
+                o += '<div style="width:100%;height:14px;background:rgba(0,0,0,0.05);border-radius:7px;overflow:hidden;margin-bottom:12px;box-shadow:inset 0 1px 3px rgba(0,0,0,0.1);">';
+                o += '<div style="height:100%;width:' + progressPct + '%;background:' + (progressPct >= 100 ? 'var(--danger-color)' : 'var(--warning-color)') + ';transition:width 0.3s ease;"></div>';
+                o += '</div>';
+                if (isBreached) {
+                    o += '<div style="text-align:center;color:var(--danger-color);font-weight:bold;background:var(--danger-color-light);padding:12px;border-radius:6px;border:1px dashed var(--danger-color);margin-top:16px;">⚠️ 该对象日内盈亏已突破设定红线，触发系统熔断/报警配置。</div>';
+                } else {
+                    o += '<div style="text-align:center;color:var(--warning-color);font-weight:bold;background:var(--warning-color-light);padding:12px;border-radius:6px;border:1px dashed var(--warning-color);margin-top:16px;">已进入高阈值触发水位，请密切关注对象账户动向。</div>';
+                }
+            }
+            
+            o += '</div></section>';
+        }
 
         if (rule) {
             o += '<section>';

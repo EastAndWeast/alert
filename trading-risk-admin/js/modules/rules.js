@@ -13,7 +13,10 @@ const RulesModule = {
         'nop_limit': { name: 'NOP Limit', icon: '<i data-lucide="ruler"></i>', color: 'dark' },
         'watch_list': { name: 'Watch List', icon: '<i data-lucide="eye"></i>', color: 'primary' },
         'reverse_positions': { name: 'Reverse Positions', icon: '<i data-lucide="repeat"></i>', color: 'warning' },
-        'deposit_withdrawal': { name: 'Deposit & Withdrawal', icon: '<i data-lucide="credit-card"></i>', color: 'success' }
+        'deposit_withdrawal': { name: 'Deposit & Withdrawal', icon: '<i data-lucide="credit-card"></i>', color: 'success' },
+        'fake_ip': { name: 'Fake / Proxy IP', icon: '<i data-lucide="shield-alert"></i>', color: 'danger' },
+        'hedge_ip': { name: 'Position Hedge (IP)', icon: '<i data-lucide="shuffle"></i>', color: 'warning' },
+        'blacklist': { name: 'Blacklist', icon: '<i data-lucide="shield-x"></i>', color: 'danger' }
     },
 
     // 规则ID计数器
@@ -193,6 +196,47 @@ const RulesModule = {
                 var keywordText = (p.include_keywords && p.include_keywords.length) ? p.include_keywords.join(', ') : I18n.t('all');
                 html += '<div class="param-item"><strong>' + I18n.t('include_keywords_label') + '：</strong>' + keywordText + '</div>';
                 break;
+            case 'fake_ip':
+                html += '<div class="param-item"><strong>🏠 Base Location：</strong>' + I18n.t('city_level_auto_profiling') + '</div>';
+                html += '<div class="param-item"><strong>' + I18n.t('block_datacenters') + '：</strong><span class="badge ' + (p.block_datacenters ? 'badge-danger' : 'badge-secondary') + '">' + (p.block_datacenters ? I18n.t('enabled') : I18n.t('disabled')) + '</span></div>';
+                html += '<div class="param-item"><strong>' + I18n.t('roaming_detection') + '：</strong><span class="badge ' + (p.roaming_detection ? 'badge-warning' : 'badge-secondary') + '">' + (p.roaming_detection ? I18n.t('enabled') : I18n.t('disabled')) + '</span></div>';
+                
+                var trustedCount = (p.trusted_locations || []).length;
+                if (trustedCount > 0) {
+                    html += '<div class="param-item"><strong>📍 ' + I18n.t('manual_trusted_locations') + '：</strong><span class="badge badge-info">' + trustedCount + ' ' + I18n.t('unit_items') + '</span></div>';
+                }
+
+                if (p.strict_region_matching) {
+                    html += '<div class="param-item"><strong>🚩 ' + I18n.t('strict_region_matching') + '：</strong><span class="badge badge-danger">' + I18n.t('enabled') + '</span></div>';
+                }
+
+                if (p.exempted_accounts && p.exempted_accounts.length) {
+                    html += '<div class="param-item"><strong>' + I18n.t('exempted_accounts') + '：</strong>' + p.exempted_accounts.length + ' ' + I18n.t('unit_items') + '</div>';
+                }
+                break;
+            case 'hedge_ip':
+                html += '<div class="param-item"><strong>分析特征：</strong>跨账号秒级对冲 + IP/属地关联诊断</div>';
+                html += '<div class="param-item"><strong>' + I18n.t('hedge_time_window') + '：</strong>' + p.time_window + 's</div>';
+                html += '<div class="param-item"><strong>每笔对冲订单最小手数：</strong>' + p.min_lots + ' ' + I18n.t('lot_unit') + '</div>';
+                html += '<div class="param-item"><strong>' + I18n.t('symbol_filter_label') + '：</strong>' + (p.symbol_filter && p.symbol_filter.length ? p.symbol_filter.join(', ') : I18n.t('all')) + '</div>';
+                break;
+            case 'blacklist':
+                var ipList = (p.ip_list || []);
+                var cidList = (p.cid_list || []);
+                html += '<div class="param-item"><strong>🚫 IP 黑名单：</strong><span class="badge badge-danger">' + ipList.length + ' 条</span>';
+                if (ipList.length > 0) {
+                    var preview = ipList.slice(0, 3).join(', ') + (ipList.length > 3 ? '...' : '');
+                    html += '<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">预览: ' + preview + '</div>';
+                }
+                html += '</div>';
+                html += '<div class="param-item"><strong>🆔 CID 黑名单：</strong><span class="badge badge-warning">' + cidList.length + ' 条</span>';
+                if (cidList.length > 0) {
+                    var preview = cidList.slice(0, 3).join(', ') + (cidList.length > 3 ? '...' : '');
+                    html += '<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">预览: ' + preview + '</div>';
+                }
+                html += '</div>';
+                html += '<div class="param-item" style="font-size:11px;color:var(--text-muted);">拦截条件匹配时在告警系统实时通知</div>';
+                break;
         }
         html += '</div>';
         return html;
@@ -230,8 +274,9 @@ const RulesModule = {
                 html += '<td>' + a.account_id + '</td>';
                 html += '<td>' + a.product + '</td>';
                 var triggerValue = this.formatTriggerValue(ruleType, a.trigger_value, a);
+                var statusText = I18n.t('status_' + a.status.toLowerCase()) || a.status;
                 html += '<td class="trigger-value-cell" title="' + triggerValue + '">' + triggerValue + '</td>';
-                html += '<td><span class="status-badge ' + statusClass + '">' + a.status + '</span></td>';
+                html += '<td><span class="status-badge ' + statusClass + '">' + statusText + '</span></td>';
                 html += '</tr>';
             }
             html += '</tbody></table>';
@@ -344,6 +389,48 @@ const RulesModule = {
                 parts.push(typeText);
             }
             return parts.join(' | ');
+        }
+
+        // 11. Fake IP
+        if (ruleType === 'fake_ip') {
+            var alertType = d.alert_type || (d.isp_type && d.isp_type.toLowerCase().indexOf('data') >= 0 ? 'datacenter' : 'roaming');
+            if (alertType === 'datacenter') {
+                return '<span style="color:var(--color-danger);font-weight:600;">⚡ 数据中心 ASN</span> | ' + (d.isp_type || d.provider || 'Unknown') + ' | IP: ' + (d.ip || v);
+            } else {
+                var base = d.base_location || d.registered_country || '注册地';
+                var cur = (d.current_city ? d.current_city + ', ' : '') + (d.current_country || d.resolvedCountry || '');
+                return '<span style="color:var(--color-warning);font-weight:600;">🌍 异地漫游</span> | ' + cur + ' vs 常驻地: ' + base + ' | IP: ' + (d.ip || v);
+            }
+        }
+
+        // 12. Hedge IP (对冲)
+        if (ruleType === 'hedge_ip') {
+            var parts = [];
+            var ipA = d.ip_a || d.shared_ip || (alert && alert.account_id === d.account_a ? d.ip : '?');
+            var ipB = d.ip_b || d.shared_ip || (alert && alert.account_id === d.account_b ? d.ip : '?');
+            
+            // IP 诊断
+            if (ipA === ipB && ipA !== '?') {
+                parts.push('<span style="color:var(--color-danger);font-weight:600;">⚠️ ' + I18n.t('identical_ip') + '</span>');
+            } else if (d.isp_match || d.city_match) {
+                parts.push('<span style="color:var(--color-warning);font-weight:600;">🔍 ' + I18n.t('suspicious_correlation') + '</span>');
+            }
+            
+            if (d.account_a && d.account_b) {
+                var dirA = d.direction_a || d.dir_a || '?';
+                var dirB = d.direction_b || d.dir_b || '?';
+                parts.push('账号 ' + d.account_a + '(' + dirA + ', ' + ipA + ') ↔ ' + d.account_b + '(' + dirB + ', ' + ipB + ')');
+            }
+            if (d.lots !== undefined) parts.push((d.lots || v) + ' ' + I18n.t('lot_unit'));
+            if (d.time_diff !== undefined) parts.push('时差: ' + d.time_diff + 's');
+            return parts.join(' | ');
+        }
+
+        // 13. Blacklist
+        if (ruleType === 'blacklist') {
+            var bType = d.match_type || 'IP';
+            var icon = bType === 'IP' ? '🚫' : '🆔';
+            return icon + ' ' + bType + ': ' + (d.matched_value || v) + ' | ' + (d.reason || '黑名单命中');
         }
 
         return v;
@@ -638,6 +725,83 @@ const RulesModule = {
                 html += '      <input type="number" name="stop_pricing_duration" class="form-control" value="' + formStopDur + '" required min="1" onkeypress="return event.charCode >= 48 && event.charCode <= 57"></div>';
                 html += '    <div class="rule-tip">' + I18n.t('rule_tip_pricing') + '</div>';
                 html += '  </div>';
+                html += '</div>';
+                break;
+
+            case 'fake_ip':
+                html += '<div class="rule-form-split">';
+                html += '  <div class="rule-sidebar">';
+                if (dataSourceHtml) html += dataSourceHtml;
+                html += '    <div style="border-left:3px solid var(--color-danger);padding-left:10px;margin-bottom:14px;">';
+                html += '      <strong>🏠 Base Location 机制</strong>';
+                html += '      <div style="font-size:11px;color:var(--text-muted);margin-top:4px;line-height:1.6;">首次登录时自动记录该 IP 的城市级归属地作为<strong>初始常驻地</strong>。后续登录均与常驻地库进行对比。</div>';
+                html += '    </div>';
+                html += '    <div class="form-group"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;">';
+                html += '      <input type="checkbox" name="block_datacenters" ' + (p && p.block_datacenters ? 'checked' : 'checked') + ' style="width:16px;height:16px;"> ⚡ 非家宽云主机预警 (ASN 检测)</label>';
+                html += '      <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">检测到 Data Center / Hosting（如阿里云、Vultr、Cloudflare）时触发</div></div>';
+                html += '    <div class="form-group"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;">';
+                html += '      <input type="checkbox" name="roaming_detection" ' + (p && p.roaming_detection ? 'checked' : 'checked') + ' style="width:16px;height:16px;"> 🌍 异地漫游检测 (城市级)</label>';
+                html += '      <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">当前登录城市不在客户合法常驻地库中时触发</div></div>';
+                html += '    <div class="form-group"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;">';
+                html += '      <input type="checkbox" name="strict_region_matching" ' + (p && p.strict_region_matching ? 'checked' : '') + ' style="width:16px;height:16px;"> 🚩 ' + I18n.t('strict_region_matching') + '</label>';
+                html += '      <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">' + I18n.t('strict_region_matching_help') + '</div></div>';
+                html += '    <div class="rule-tip">风控员可在告警中点击【Trust Location】将城市加入白名单。</div>';
+                html += '  </div>';
+                html += '  <div class="rule-main">';
+                html += '    <div class="form-group"><label>' + I18n.t('exempted_accounts') + '<span style="font-size:11px;color:var(--text-muted);margin-left:8px;">（一行一个账号）</span></label>';
+                html += '      <textarea name="exempted_accounts" class="form-control" rows="3" placeholder="例如：\n123456">' + (p && p.exempted_accounts ? p.exempted_accounts.join('\n') : '') + '</textarea></div>';
+                html += '    <div class="form-group"><label>' + I18n.t('manual_trusted_locations') + '<span style="font-size:11px;color:var(--text-muted);margin-left:8px;">（' + I18n.t('manual_locations_help') + '）</span></label>';
+                var rawLocations = (p && p.trusted_locations || []).map(function(loc) {
+                    return loc.account + ': ' + loc.city + ', ' + loc.country;
+                }).join('\n');
+                html += '      <textarea name="manual_trusted_locations_raw" class="form-control" rows="6" placeholder="801234: London, GB">' + rawLocations + '</textarea></div>';
+                html += '  </div>';
+                html += '</div>';
+                break;
+
+            case 'blacklist':
+                html += '<div class="rule-form-split">';
+                html += '  <div class="rule-sidebar">';
+                if (dataSourceHtml) html += dataSourceHtml;
+                html += '    <div style="border-left:3px solid var(--color-danger);padding-left:10px;margin-bottom:14px;">';
+                html += '      <strong>🚫 黑名单拦截模式</strong>';
+                html += '      <div style="font-size:11px;color:var(--text-muted);margin-top:4px;line-height:1.6;">黑名单内的 IP 或客户 CID 一旦登录或下单，系统立即触发高优先级告警通知风控员。</div>';
+                html += '    </div>';
+                html += '    <div class="form-group"><label>规则名称 *</label>';
+                html += '      <input type="text" name="rule_name_override" class="form-control" value="' + (rule ? (rule.name || 'Blacklist') : 'Blacklist') + '" required></div>';
+                html += '    <div class="form-group"><label>封锁原因模板</label>';
+                html += '      <input type="text" name="block_reason" class="form-control" placeholder="例如：恶意对冲套利" value="' + (p && p.block_reason ? p.block_reason : '') + '"></div>';
+                html += '    <div class="rule-tip">支持批量粘贴，每行一条。IP 支持精确匹配（192.168.1.1）。</div>';
+                html += '  </div>';
+                html += '  <div class="rule-main">';
+                html += '    <div class="form-group"><label>🚫 IP 黑名单<span style="font-size:11px;color:var(--text-muted);margin-left:8px;">（每行一个 IP 地址）</span></label>';
+                html += '      <textarea name="ip_list_raw" class="form-control" rows="7" placeholder="例如：\n45.33.32.156\n103.224.182.240\n198.199.77.88">' + (p && p.ip_list ? p.ip_list.join('\n') : '') + '</textarea></div>';
+                html += '    <div class="form-group" style="margin-bottom:0;"><label>🆔 CID 黑名单<span style="font-size:11px;color:var(--text-muted);margin-left:8px;">（每行一个客户 ID）</span></label>';
+                html += '      <textarea name="cid_list_raw" class="form-control" rows="5" placeholder="例如：\nC-889923\nC-334411">' + (p && p.cid_list ? p.cid_list.join('\n') : '') + '</textarea></div>';
+                html += '  </div>';
+                html += '</div>';
+                break;
+
+            case 'hedge_ip':
+                html += '<div class="rule-form-split">';
+                html += '  <div class="rule-sidebar">';
+                if (dataSourceHtml) html += dataSourceHtml;
+                html += '    <div class="form-group"><label>每笔对冲订单最小手数 (Min Lots) *</label>';
+                html += '      <input type="number" name="min_lots" class="form-control" step="0.01" value="' + (p ? p.min_lots : 0.1) + '" required>';
+                html += '      <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">对冲双方的每一笔订单手数均需大于此阈值。</div></div>';
+                html += '    <div class="form-group"><label>对冲分析时间窗口 (Time Window) *</label>';
+                html += '      <div class="input-group"><input type="number" name="time_window" class="form-control" value="' + (p ? p.time_window : 3600) + '" required><span class="input-group-text">秒</span></div>';
+                html += '      <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">在此时间范围内相同 IP 下不同账号的反向单将被视为对冲。</div></div>';
+                html += '    <div class="rule-tip">' + I18n.t('hedge_ip_desc') + '</div>';
+                html += '  </div>';
+                html += '  <div class="rule-main">';
+                html += '    <div class="form-group"><label>' + I18n.t('symbol_filter_label') + '</label>';
+                html += '      <div class="tag-input-panel-info">' + I18n.t('tag_input_help') + '</div>';
+                html += this.renderTagInput('symbol_filter', p ? p.symbol_filter : []);
+                html += '    </div>';
+                html += '  </div>';
+                html += '</div>';
+                break;
 
                 // 右侧：产品选择
                 html += '  <div class="rule-main">';
@@ -846,6 +1010,40 @@ const RulesModule = {
                 p.time_interval = parseInt(formData.get('time_interval')) || 600;
 
                 p.calculation_mode = 'ONLY_POSITIONS';
+                break;
+
+            case 'fake_ip':
+                p.block_datacenters = formData.get('block_datacenters') === 'on';
+                p.roaming_detection = formData.get('roaming_detection') === 'on';
+                p.strict_region_matching = formData.get('strict_region_matching') === 'on';
+                p.exempted_accounts = formData.get('exempted_accounts') ? formData.get('exempted_accounts').split('\n').map(function (s) { return s.trim(); }).filter(function (s) { return s; }) : [];
+                
+                var rawLocs = formData.get('manual_trusted_locations_raw');
+                p.trusted_locations = [];
+                if (rawLocs) {
+                    var lines = rawLocs.split('\n');
+                    lines.forEach(function(line) {
+                        var parts = line.split(':');
+                        if (parts.length >= 2) {
+                            var account = parts[0].trim();
+                            var locParts = parts[1].split(',');
+                            if (locParts.length >= 2) {
+                                p.trusted_locations.push({
+                                    account: account,
+                                    city: locParts[0].trim(),
+                                    country: locParts[1].trim(),
+                                    note: 'Manual Entry'
+                                });
+                            }
+                        }
+                    });
+                }
+                break;
+
+            case 'hedge_ip':
+                p.time_window = parseInt(formData.get('time_window'));
+                p.min_lots = parseFloat(formData.get('min_lots'));
+                p.symbol_filter = formData.get('symbol_filter') ? formData.get('symbol_filter').split(',').map(function (s) { return s.trim(); }).filter(function (s) { return s; }) : [];
                 break;
 
             case 'pricing':
@@ -1280,6 +1478,25 @@ const RulesModule = {
                     .replace('%s', wrapVal(Utils.formatNumber(d_depT)))
                     .replace('%s', wrapVal(Utils.formatNumber(d_witT)))
                     .replace('%s', wrapVal(d_keys));
+                break;
+
+            case 'fake_ip':
+                var f_dc = form.querySelector('[name="block_datacenters"]').checked;
+                var f_roam = form.querySelector('[name="roaming_detection"]').checked;
+                html = (f_dc ? I18n.t('fakeip_trigger_dc') : '') + 
+                       (f_dc && f_roam ? ' + ' : '') + 
+                       (f_roam ? I18n.t('fakeip_trigger_roam') : '');
+                if (!f_dc && !f_roam) html = 'No detection enabled';
+                break;
+
+            case 'hedge_ip':
+                var h_win = form.querySelector('[name="time_window"]').value || 3600;
+                var h_lots = form.querySelector('[name="min_lots"]').value || 0.1;
+                html = I18n.t('rule_preview_reverse') // Reusing similar logic or I should check if I have a specific hedge preview
+                      .replace('%s', wrapVal(h_win))
+                      .replace('%s', wrapVal(h_lots))
+                      .replace('%s', wrapVal('---'))
+                      .replace('%s', getSymbolsText('symbol_filter'));
                 break;
         }
 

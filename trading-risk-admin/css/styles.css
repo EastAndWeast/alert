@@ -258,7 +258,9 @@ button {
 }
 
 .nav-group.open .nav-submenu {
-    max-height: 200px;
+    max-height: 2000px;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .nav-submenu .nav-link {
@@ -1615,7 +1617,9 @@ button {
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius-sm);
     padding: var(--spacing-md);
-    max-height: 200px;
+    max-height: 800px;
+    overflow-y: auto;
+    overflow-x: hidden;
     overflow-y: auto;
 }
 

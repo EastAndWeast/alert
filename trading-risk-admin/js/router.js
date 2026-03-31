@@ -17,6 +17,7 @@ var Router = {
         'rules-blacklist': { title: 'blacklist', breadcrumb: 'rules_manage / blacklist', render: function () { return RulesModule.renderRulePage('blacklist'); } },
         'rules-fakeip': { title: 'fake_ip', breadcrumb: 'rules_manage / fake_ip', render: function () { return RulesModule.renderRulePage('fake_ip'); } },
         'rules-hedge-ip': { title: 'hedge_ip', breadcrumb: 'rules_manage / hedge_ip', render: function () { return RulesModule.renderRulePage('hedge_ip'); } },
+        'rules-dsl-limit': { title: 'dsl_limit', breadcrumb: 'rules_manage / dsl_limit', render: function () { return RulesModule.renderRulePage('dsl_limit'); } },
         'products': { title: 'product_category_mapping', breadcrumb: 'product_category_mapping', render: function () { return ProductsModule.render(); } },
         'alerts': { title: 'alert_records', breadcrumb: 'monitoring_record', render: function () { return AlertsModule.render(); } },
         'accounts': { title: 'account_management', breadcrumb: 'trading_account', render: function () { return AccountsModule.render(); } },

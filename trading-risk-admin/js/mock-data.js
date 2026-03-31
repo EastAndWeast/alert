@@ -171,7 +171,10 @@ const MockData = {
         // 12. Fake IP (原生模式)
         { rule_id: 'R100', source_id: 'DS001', rule_type: 'fake_ip', name: 'Fake IP Detection', description: '监控数据中心IP及城市级异地漫游', icon: '📍', enabled: true, parameters: { block_datacenters: true, roaming_detection: true, strict_region_matching: true, city_level_detection: true, exempted_accounts: ['123456', 'ADMIN_TEST'], trusted_locations: [{ account: '801234', city: 'London', country: 'GB', note: 'Manual Entry' }, { account: 'C-556677', city: 'Sydney', country: 'AU', note: 'Manual Entry' }] }, trigger_action: 'alert', triggered_count: 12 },
         // 13. Hedge IP (原生模式)
-        { rule_id: 'R110', source_id: 'DS001', rule_type: 'hedge_ip', name: 'Cross-Account Hedge Detection', description: '监控相同IP或关联IP下跨账号对冲下单', icon: '🔗', enabled: true, parameters: { time_window: 60, min_lots: 0.1, symbol_filter: ['XAUUSD', 'EURUSD'] }, trigger_action: 'alert', triggered_count: 6 }
+        { rule_id: 'R110', source_id: 'DS001', rule_type: 'hedge_ip', name: 'Cross-Account Hedge Detection', description: '监控相同IP或关联IP下跨账号对冲下单', icon: '🔗', enabled: true, parameters: { time_window: 60, min_lots: 0.1, symbol_filter: ['XAUUSD', 'EURUSD'] }, trigger_action: 'alert', triggered_count: 6 },
+        // 14. DSL Limit 
+        { rule_id: 'R120', source_id: 'DS002', rule_type: 'dsl_limit', name: 'Group A - XAUUSD Limit', description: 'Monitor Day PnL for XAUUSD', icon: '📈', enabled: true, parameters: { pnl_upper_limit: 5000, pnl_lower_limit: -10000, symbol_filter: ['XAUUSD'] }, trigger_action: 'alert', triggered_count: 2 },
+        { rule_id: 'R121', source_id: 'DS003', rule_type: 'dsl_limit', name: 'All Symbols Limit', description: 'Global Day PnL monitoring', icon: '📈', enabled: true, parameters: { pnl_upper_limit: 100000, pnl_lower_limit: -50000, symbol_filter: [] }, trigger_action: 'alert', triggered_count: 0 }
     ],
 
     // 告警记录（10种告警类型各含模拟数据）
@@ -230,7 +233,10 @@ const MockData = {
         // 13. Hedge IP 告警记录 (增强版)
         { server_timezone_offset: -300, alert_id: 'A110', source_id: 'DS001', rule_type: 'hedge_ip', rule_id: 'R110', account_id: '801234', product: 'XAUUSD', trigger_time: '2024-01-15 10:23:11', trigger_value: 5.0, status: 'new', platform: 'MT4', details: { shared_ip: '45.76.120.33', account_a: '801234', account_b: '801235', direction_a: 'BUY', direction_b: 'SELL', lots: 5.0, time_diff: 8, symbol: 'XAUUSD', provider: 'Vultr Hosting (ASN 20473)' } },
         { server_timezone_offset: -300, alert_id: 'A111', source_id: 'DS001', rule_type: 'hedge_ip', rule_id: 'R110', account_id: '920001', product: 'XAUUSD', trigger_time: '2024-01-14 15:44:02', trigger_value: 5.0, status: 'confirmed', platform: 'MT4', details: { ip_a: '103.55.18.77', ip_b: '103.55.18.92', isp_match: true, account_a: '920001', account_b: '920007', direction_a: 'SELL', direction_b: 'BUY', lots: 5.0, time_diff: 2, symbol: 'XAUUSD' } },
-        { server_timezone_offset: -300, alert_id: 'A112', source_id: 'DS001', rule_type: 'hedge_ip', rule_id: 'R110', account_id: '770100', product: 'GBPUSD', trigger_time: '2024-01-13 09:11:58', trigger_value: 1.0, status: 'false_positive', platform: 'MT4', details: { shared_ip: '192.168.10.5', account_a: '770100', account_b: '770101', direction_a: 'BUY', direction_b: 'SELL', lots: 1.0, time_diff: 45, symbol: 'GBPUSD' } }
+        { server_timezone_offset: -300, alert_id: 'A112', source_id: 'DS001', rule_type: 'hedge_ip', rule_id: 'R110', account_id: '770100', product: 'GBPUSD', trigger_time: '2024-01-13 09:11:58', trigger_value: 1.0, status: 'false_positive', platform: 'MT4', details: { shared_ip: '192.168.10.5', account_a: '770100', account_b: '770101', direction_a: 'BUY', direction_b: 'SELL', lots: 1.0, time_diff: 45, symbol: 'GBPUSD' } },
+        // 14. DSL Limit 告警记录
+        { server_timezone_offset: 0, alert_id: 'A120', source_id: 'DS002', rule_type: 'dsl_limit', rule_id: 'R120', account_id: 'SYSTEM', product: 'XAUUSD', trigger_time: '2024-01-16 14:05:00', trigger_value: -15000.00, status: 'new', platform: 'MT5', details: { limit: -10000 } },
+        { server_timezone_offset: 0, alert_id: 'A121', source_id: 'DS002', rule_type: 'dsl_limit', rule_id: 'R120', account_id: 'SYSTEM', product: 'EURUSD', trigger_time: '2024-01-16 09:30:00', trigger_value: 6500.00, status: 'new', platform: 'MT5', details: { limit: 5000 } }
     ],
 
     // 账户数据

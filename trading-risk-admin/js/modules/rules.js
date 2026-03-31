@@ -16,7 +16,8 @@ const RulesModule = {
         'deposit_withdrawal': { name: 'Deposit & Withdrawal', icon: '<i data-lucide="credit-card"></i>', color: 'success' },
         'fake_ip': { name: 'Fake / Proxy IP', icon: '<i data-lucide="shield-alert"></i>', color: 'danger' },
         'hedge_ip': { name: 'Position Hedge (IP)', icon: '<i data-lucide="shuffle"></i>', color: 'warning' },
-        'blacklist': { name: 'Blacklist', icon: '<i data-lucide="shield-x"></i>', color: 'danger' }
+        'blacklist': { name: 'Blacklist', icon: '<i data-lucide="shield-x"></i>', color: 'danger' },
+        'dsl_limit': { name: 'DSL Limit', icon: '<i data-lucide="activity"></i>', color: 'danger' }
     },
 
     // 规则ID计数器
@@ -237,6 +238,12 @@ const RulesModule = {
                 html += '</div>';
                 html += '<div class="param-item" style="font-size:11px;color:var(--text-muted);">拦截条件匹配时在告警系统实时通知</div>';
                 break;
+            case 'dsl_limit':
+                html += '<div class="param-item"><strong>' + I18n.t('dsl_pnl_upper_limit_label') + '：</strong><span class="badge badge-success">+$' + Utils.formatNumber(p.pnl_upper_limit || 0) + '</span></div>';
+                html += '<div class="param-item"><strong>' + I18n.t('dsl_pnl_lower_limit_label') + '：</strong><span class="badge badge-danger">-$' + Utils.formatNumber(Math.abs(p.pnl_lower_limit || 0)) + '</span></div>';
+                html += '<div class="param-item"><strong>' + I18n.t('monitor_symbols_label') + '：</strong>' + (p.symbol_filter && p.symbol_filter.length ? p.symbol_filter.join(', ') : I18n.t('all_symbols')) + '</div>';
+                html += '<div class="param-item" style="font-size:11px;color:var(--text-muted);">' + I18n.t('dsl_formula_tip') + '</div>';
+                break;
         }
         html += '</div>';
         return html;
@@ -275,7 +282,8 @@ const RulesModule = {
                 html += '<td>' + a.product + '</td>';
                 var triggerValue = this.formatTriggerValue(ruleType, a.trigger_value, a);
                 var statusText = I18n.t('status_' + a.status.toLowerCase()) || a.status;
-                html += '<td class="trigger-value-cell" title="' + triggerValue + '">' + triggerValue + '</td>';
+                var plainTextTriggerValue = triggerValue.replace(/<[^>]+>/g, '').replace(/"/g, '&quot;');
+                html += '<td class="trigger-value-cell" title="' + plainTextTriggerValue + '">' + triggerValue + '</td>';
                 html += '<td><span class="status-badge ' + statusClass + '">' + statusText + '</span></td>';
                 html += '</tr>';
             }
@@ -431,6 +439,14 @@ const RulesModule = {
             var bType = d.match_type || 'IP';
             var icon = bType === 'IP' ? '🚫' : '🆔';
             return icon + ' ' + bType + ': ' + (d.matched_value || v) + ' | ' + (d.reason || '黑名单命中');
+        }
+
+        // 14. DSL Limit
+        if (ruleType === 'dsl_limit') {
+            var isLoss = parseFloat(v) < 0;
+            var color = isLoss ? 'var(--color-danger)' : 'var(--color-success)';
+            var limit = isLoss ? (d.limit || '-') : '+' + (d.limit || '-');
+            return '<span style="color:' + color + ';font-weight:600;">' + I18n.t('day_pnl_label') + ' $' + Utils.formatNumber(v) + '</span> | ' + I18n.t('dsl_limit_threshold_label') + ' ' + limit;
         }
 
         return v;
@@ -725,6 +741,15 @@ const RulesModule = {
                 html += '      <input type="number" name="stop_pricing_duration" class="form-control" value="' + formStopDur + '" required min="1" onkeypress="return event.charCode >= 48 && event.charCode <= 57"></div>';
                 html += '    <div class="rule-tip">' + I18n.t('rule_tip_pricing') + '</div>';
                 html += '  </div>';
+                
+                // 右侧：产品选择
+                html += '  <div class="rule-main">';
+                html += '    <div class="form-group" style="margin-bottom:0;"><label>' + I18n.t('monitor_symbols_label') + '</label>';
+                html += '      <div class="tag-input-panel-info">' + I18n.t('tag_input_help') + '</div>';
+                var formPScope = (p && p.pricing_scope) || (p && p.pricing && p.pricing.scope) || [];
+                html += this.renderTagInput('pricing_scope', formPScope);
+                html += '    </div>';
+                html += '  </div>';
                 html += '</div>';
                 break;
 
@@ -782,6 +807,30 @@ const RulesModule = {
                 html += '</div>';
                 break;
 
+            case 'dsl_limit':
+                html += '<div class="rule-form-split">';
+                html += '  <div class="rule-sidebar">';
+                if (dataSourceHtml) html += dataSourceHtml;
+                html += '    <div style="border-left:3px solid var(--color-danger);padding-left:10px;margin-bottom:14px;">';
+                html += '      <strong>📈 ' + I18n.t('dsl_limit') + '</strong>';
+                html += '      <div style="font-size:11px;color:var(--text-muted);margin-top:4px;line-height:1.6;">' + I18n.t('dsl_limit_desc') + '</div>';
+                html += '      <div style="font-size:11px;color:var(--color-warning);margin-top:4px;line-height:1.6;">' + I18n.t('dsl_formula_tip') + '</div>';
+                html += '    </div>';
+                html += '    <div class="form-group"><label>' + I18n.t('dsl_pnl_upper_limit_label') + ' *</label>';
+                html += '      <input type="number" name="pnl_upper_limit" class="form-control" value="' + (p && p.pnl_upper_limit!==undefined ? p.pnl_upper_limit : 5000) + '" required></div>';
+                html += '    <div class="form-group"><label>' + I18n.t('dsl_pnl_lower_limit_label') + ' *</label>';
+                html += '      <input type="number" name="pnl_lower_limit" class="form-control" value="' + (p && p.pnl_lower_limit!==undefined ? p.pnl_lower_limit : -10000) + '" required></div>';
+                html += '    <div class="rule-tip">上限必须为正数，下限必须为负数。</div>';
+                html += '  </div>';
+                html += '  <div class="rule-main">';
+                html += '    <div class="form-group"><label>' + I18n.t('monitor_symbols_label') + '</label>';
+                html += '      <div class="tag-input-panel-info">' + I18n.t('tag_input_help') + '</div>';
+                html += this.renderTagInput('symbol_filter', p && p.symbol_filter ? p.symbol_filter : []);
+                html += '    </div>';
+                html += '  </div>';
+                html += '</div>';
+                break;
+
             case 'hedge_ip':
                 html += '<div class="rule-form-split">';
                 html += '  <div class="rule-sidebar">';
@@ -798,17 +847,6 @@ const RulesModule = {
                 html += '    <div class="form-group"><label>' + I18n.t('symbol_filter_label') + '</label>';
                 html += '      <div class="tag-input-panel-info">' + I18n.t('tag_input_help') + '</div>';
                 html += this.renderTagInput('symbol_filter', p ? p.symbol_filter : []);
-                html += '    </div>';
-                html += '  </div>';
-                html += '</div>';
-                break;
-
-                // 右侧：产品选择
-                html += '  <div class="rule-main">';
-                html += '    <div class="form-group" style="margin-bottom:0;"><label>' + I18n.t('monitor_symbols_label') + '</label>';
-                html += '      <div class="tag-input-panel-info">' + I18n.t('tag_input_help') + '</div>';
-                var formPScope = (p && p.pricing_scope) || (p && p.pricing && p.pricing.scope) || [];
-                html += this.renderTagInput('pricing_scope', formPScope);
                 html += '    </div>';
                 html += '  </div>';
                 html += '</div>';
@@ -1038,6 +1076,12 @@ const RulesModule = {
                         }
                     });
                 }
+                break;
+
+            case 'dsl_limit':
+                p.pnl_upper_limit = parseFloat(formData.get('pnl_upper_limit')) || 0;
+                p.pnl_lower_limit = parseFloat(formData.get('pnl_lower_limit')) || 0;
+                p.symbol_filter = formData.get('symbol_filter') ? formData.get('symbol_filter').split(',').map(function (s) { return s.trim(); }).filter(function (s) { return s; }) : [];
                 break;
 
             case 'hedge_ip':
@@ -1478,6 +1522,20 @@ const RulesModule = {
                     .replace('%s', wrapVal(Utils.formatNumber(d_depT)))
                     .replace('%s', wrapVal(Utils.formatNumber(d_witT)))
                     .replace('%s', wrapVal(d_keys));
+                break;
+
+            case 'dsl_limit':
+                var d_upper = form.querySelector('[name="pnl_upper_limit"]').value || 5000;
+                var d_lower = form.querySelector('[name="pnl_lower_limit"]').value || -10000;
+                html = I18n.t('rule_preview_dsl')
+                    .replace('%s', getSymbolsText('symbol_filter'))
+                    .replace('%s', wrapVal(Utils.formatNumber(d_upper)))
+                    .replace('%s', wrapVal(Utils.formatNumber(Math.abs(d_lower))));
+                break;
+
+            case 'blacklist':
+                var b_reason = form.querySelector('[name="block_reason"]').value || 'Rules Violation';
+                html = '🚫 Block login/trade for IDs in blacklist | Reason: ' + wrapVal(b_reason);
                 break;
 
             case 'fake_ip':

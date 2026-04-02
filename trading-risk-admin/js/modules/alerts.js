@@ -494,13 +494,20 @@ const AlertsModule = {
             return parts.join(' | ');
         }
 
-        // 5. Exposure Alert - USD | 方向 货币
+        // 5. Exposure Alert
         if (t === 'exposure_alert') {
-            var parts = ['$' + Utils.formatNumber(Math.abs(v))];
-            if (d.direction && d.currency) {
-                parts.push(d.direction + ' ' + d.currency);
+            var limitText = '';
+            var isUpper = d.upper_limit_usd !== undefined && v > d.upper_limit_usd;
+            var isLower = d.lower_limit_usd !== undefined && v < d.lower_limit_usd;
+
+            if (isUpper) {
+                limitText = '<span style="font-size:12px;opacity:0.8;">超上限: $' + Utils.formatNumber(d.upper_limit_usd) + '</span>';
+            } else if (isLower) {
+                limitText = '<span style="font-size:12px;opacity:0.8;">超下限: -$' + Utils.formatNumber(Math.abs(d.lower_limit_usd)) + '</span>';
             }
-            return parts.join(' | ');
+            
+            var formattedV = v < 0 ? '-$' + Utils.formatNumber(Math.abs(v)) : '+$' + Utils.formatNumber(v);
+            return '<span style="color:var(--danger-color);font-weight:bold;font-size:14px;">' + formattedV + '</span> <span style="opacity:0.4;">|</span> ' + limitText;
         }
 
         // 6. Pricing - 停价显示
@@ -606,7 +613,12 @@ const AlertsModule = {
         }
         if (t === 'liquidity_trade') return d.order_count + ' ' + I18n.t('unit_orders') + ' ' + d.direction;
         if (t === 'scalping') return I18n.t('profit_usd_min_label') + ' $' + d.profit_usd;
-        if (t === 'exposure_alert') return d.currency + ' ' + d.direction;
+        if (t === 'exposure_alert') {
+            var limitDetails = [];
+            if (d.upper_limit_usd !== undefined) limitDetails.push('上限: $' + Utils.formatNumber(d.upper_limit_usd));
+            if (d.lower_limit_usd !== undefined) limitDetails.push('下限: -$' + Utils.formatNumber(Math.abs(d.lower_limit_usd)));
+            return limitDetails.join(' / ');
+        }
         if (t === 'pricing') return I18n.t('pricing_stop');
         if (t === 'volatility') return d.time_window || 'M1';
         if (t === 'nop_limit') return d.direction + ' ' + d.net_position + ' ' + I18n.t('unit_lots');

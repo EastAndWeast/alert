@@ -141,8 +141,8 @@ const MockData = {
         { rule_id: 'R031', source_id: 'DS003', rule_type: 'scalping', name: 'Scalping', description: '监控持仓时间过短的交易行为', icon: '⚡', enabled: true, parameters: { duration_threshold: 120, comparison_logic: 'LESS_THAN', symbol_filter: ['BTCUSD'], lot_min: 0.5, usd_value_min: 50000.0, profit_usd_min: 500.0, include_loss: true }, trigger_action: 'alert', triggered_count: 22 },
 
         // 5. Exposure Alert - 货币敞口监控
-        { rule_id: 'R040', source_id: 'DS001', rule_type: 'exposure_alert', name: 'Exposure Alert', description: '监控货币净敞口超标', icon: '📊', enabled: true, parameters: { target_currency: 'USD', exposure_threshold: 10000000, time_interval: 600, calculation_mode: 'ONLY_POSITIONS' }, trigger_action: 'alert', triggered_count: 2 },
-        { rule_id: 'R041', source_id: 'DS001', rule_type: 'exposure_alert', name: 'Exposure Alert', description: '监控货币净敞口超标', icon: '📊', enabled: true, parameters: { target_currency: 'JPY', exposure_threshold: 50000000, time_interval: 600, calculation_mode: 'ONLY_POSITIONS' }, trigger_action: 'alert', triggered_count: 1 },
+        { rule_id: 'R040', source_id: 'DS001', rule_type: 'exposure_alert', name: 'Exposure Alert', description: '监控品种净敞口超标', icon: '📊', enabled: true, parameters: { upper_limit_usd: 10000000, lower_limit_usd: -10000000, symbol_filter: ['EURUSD', 'GBPUSD'], time_interval: 600, calculation_mode: 'NET_TOTAL_USD' }, trigger_action: 'alert', triggered_count: 2 },
+        { rule_id: 'R041', source_id: 'DS001', rule_type: 'exposure_alert', name: 'Exposure Alert', description: '监控品种净敞口超标', icon: '📊', enabled: true, parameters: { upper_limit_usd: 5000000, lower_limit_usd: -5000000, symbol_filter: ['USDJPY'], time_interval: 600, calculation_mode: 'NET_TOTAL_USD' }, trigger_action: 'alert', triggered_count: 1 },
 
         // 6. Pricing - 报价异常
         { rule_id: 'R050', source_id: 'DS001', rule_type: 'pricing', name: 'Pricing Monitor', description: 'Monitor price gaps and staleness', icon: '⏱️', enabled: true, parameters: { pricing: { stop_pricing_duration: 30, max_spread: 150, scope: ['Forex', 'XAUUSD'] } }, trigger_action: 'alert', triggered_count: 12 },
@@ -198,8 +198,8 @@ const MockData = {
         { server_timezone_offset: 660, alert_id: 'A032', source_id: 'DS003', rule_type: 'scalping', rule_id: 'R032', account_id: '44444444', product: 'XAUUSD', trigger_time: '2024-01-15 15:12:55', trigger_value: 42, status: 'new', platform: 'MT5', details: { profit_usd: 1200, lots: 0.8, threshold: 60 } },
 
         // 5. Exposure Alert (敞口监控)
-        { server_timezone_offset: -300, alert_id: 'A040', source_id: 'DS001', rule_type: 'exposure_alert', rule_id: 'R040', account_id: 'SYSTEM', product: 'USD', trigger_time: '2024-01-15 12:00:00', trigger_value: 12500000, status: 'new', platform: 'MT4', details: { direction: 'LONG', threshold: 10000000, currency: 'USD' } },
-        { server_timezone_offset: 0, alert_id: 'A041', source_id: 'DS002', rule_type: 'exposure_alert', rule_id: 'R041', account_id: 'SYSTEM', product: 'JPY', trigger_time: '2024-01-15 14:30:00', trigger_value: -8500000, status: 'reviewed', platform: 'MT5', details: { direction: 'SHORT', threshold: 5000000, currency: 'JPY' } },
+        { server_timezone_offset: -300, alert_id: 'A040', source_id: 'DS001', rule_type: 'exposure_alert', rule_id: 'R040', account_id: 'SYSTEM', product: 'EURUSD', trigger_time: '2024-01-15 12:00:00', trigger_value: 12500000, status: 'new', platform: 'MT4', details: { upper_limit_usd: 10000000, lower_limit_usd: -10000000 } },
+        { server_timezone_offset: 0, alert_id: 'A041', source_id: 'DS002', rule_type: 'exposure_alert', rule_id: 'R041', account_id: 'SYSTEM', product: 'USDJPY', trigger_time: '2024-01-15 14:30:00', trigger_value: -8500000, status: 'reviewed', platform: 'MT5', details: { upper_limit_usd: 5000000, lower_limit_usd: -5000000 } },
 
         // 6. Pricing 
         { server_timezone_offset: -300, alert_id: 'A050', source_id: 'DS001', rule_type: 'pricing', rule_id: 'R050', account_id: 'SYSTEM', product: 'XAUUSD', trigger_time: '2024-01-15 09:15:00', trigger_value: 45, status: 'new', platform: 'MT4', details: { alert_subtype: 'STALE_PRICE', last_tick_time: '2024-01-15 09:14:15', threshold: 30 } },

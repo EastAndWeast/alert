@@ -148,10 +148,10 @@ const RulesModule = {
                 html += '<div class="param-item"><strong>' + I18n.t('monitor_symbols_label') + '：</strong>' + (p.symbol_filter && p.symbol_filter.length ? p.symbol_filter.join(', ') : I18n.t('all')) + '</div>';
                 break;
             case 'exposure_alert':
-                html += '<div class="param-item"><strong>' + I18n.t('target_currency_label') + '：</strong>' + p.target_currency + '</div>';
-                html += '<div class="param-item"><strong>' + I18n.t('exposure_threshold_label') + '：</strong>' + Utils.formatNumber(p.exposure_threshold) + '</div>';
+                html += '<div class="param-item"><strong>' + I18n.t('upper_limit_usd_label') + '：</strong>$' + Utils.formatNumber(p.upper_limit_usd) + '</div>';
+                html += '<div class="param-item"><strong>' + I18n.t('lower_limit_usd_label') + '：</strong>$' + Utils.formatNumber(p.lower_limit_usd) + '</div>';
                 html += '<div class="param-item"><strong>' + I18n.t('time_interval_label') + '：</strong>' + p.time_interval + ' ' + I18n.t('unit_seconds') + '</div>';
-
+                html += '<div class="param-item"><strong>' + I18n.t('monitor_symbols_label') + '：</strong>' + (p.symbol_filter && p.symbol_filter.length ? p.symbol_filter.join(', ') : I18n.t('all')) + '</div>';
                 break;
             case 'pricing':
                 var stopDur = p.stop_pricing_duration || (p.pricing && p.pricing.stop_pricing_duration);
@@ -336,11 +336,18 @@ const RulesModule = {
 
         // 5. Exposure Alert
         if (ruleType === 'exposure_alert' || ruleType === 'exposure') {
-            var parts = ['$' + Utils.formatNumber(Math.abs(v))];
-            if (d.direction && d.currency) {
-                parts.push(d.direction + ' ' + d.currency);
+            var limitText = '';
+            var isUpper = d.upper_limit_usd !== undefined && v > d.upper_limit_usd;
+            var isLower = d.lower_limit_usd !== undefined && v < d.lower_limit_usd;
+
+            if (isUpper) {
+                limitText = '<span style="font-size:12px;opacity:0.8;">超上限: $' + Utils.formatNumber(d.upper_limit_usd) + '</span>';
+            } else if (isLower) {
+                limitText = '<span style="font-size:12px;opacity:0.8;">超下限: -$' + Utils.formatNumber(Math.abs(d.lower_limit_usd)) + '</span>';
             }
-            return parts.join(' | ');
+            
+            var formattedV = v < 0 ? '-$' + Utils.formatNumber(Math.abs(v)) : '+$' + Utils.formatNumber(v);
+            return '<span style="color:var(--danger-color);font-weight:bold;font-size:14px;">' + formattedV + '</span> <span style="opacity:0.4;">|</span> ' + limitText;
         }
 
         // 6. Pricing 
@@ -719,15 +726,24 @@ const RulesModule = {
                 break;
 
             case 'exposure_alert':
+                html += '<div class="rule-form-split">';
+                html += '  <div class="rule-sidebar">';
                 if (dataSourceHtml) html += dataSourceHtml;
-                html += '<div class="form-group"><label>' + I18n.t('target_currency_label') + ' *</label>';
-                html += '<input type="text" name="target_currency" class="form-control" value="' + (p ? p.target_currency : 'USD') + '" required placeholder="USD,JPY,EUR"></div>';
-                html += '<div class="form-group"><label>' + I18n.t('exposure_threshold_label') + ' *</label>';
-                html += '<input type="number" name="exposure_threshold" class="form-control" value="' + (p ? p.exposure_threshold : 10000000) + '" required></div>';
-                html += '<div class="form-group"><label>' + I18n.t('time_interval_label') + ' (' + I18n.t('unit_seconds') + ')</label>';
-                html += '<input type="number" name="time_interval" class="form-control" value="' + (p ? p.time_interval : 600) + '"></div>';
-
-                html += '<div class="rule-tip">' + I18n.t('rule_tip_exposure_alert') + '</div>';
+                html += '    <div class="form-group"><label>' + I18n.t('upper_limit_usd_label') + ' *</label>';
+                html += '      <input type="number" name="upper_limit_usd" class="form-control" value="' + (p && p.upper_limit_usd !== undefined ? p.upper_limit_usd : 1000000) + '" required></div>';
+                html += '    <div class="form-group"><label>' + I18n.t('lower_limit_usd_label') + ' *</label>';
+                html += '      <input type="number" name="lower_limit_usd" class="form-control" value="' + (p && p.lower_limit_usd !== undefined ? p.lower_limit_usd : -1000000) + '" required></div>';
+                html += '    <div class="form-group"><label>' + I18n.t('time_interval_label') + ' (' + I18n.t('unit_seconds') + ')</label>';
+                html += '      <input type="number" name="time_interval" class="form-control" value="' + (p ? p.time_interval : 600) + '"></div>';
+                html += '    <div class="rule-tip">' + I18n.t('rule_tip_exposure_alert') + '</div>';
+                html += '  </div>';
+                html += '  <div class="rule-main">';
+                html += '    <div class="form-group" style="margin-bottom:0;"><label>📊 ' + I18n.t('monitor_symbols_label') + '</label>';
+                html += '      <div class="tag-input-panel-info">' + I18n.t('tag_input_help') + '</div>';
+                html += this.renderTagInput('symbol_filter', p && p.symbol_filter ? p.symbol_filter : []);
+                html += '    </div>';
+                html += '  </div>';
+                html += '</div>';
                 break;
 
             case 'pricing':
@@ -1043,11 +1059,12 @@ const RulesModule = {
                 break;
 
             case 'exposure_alert':
-                p.target_currency = formData.get('target_currency');
-                p.exposure_threshold = parseFloat(formData.get('exposure_threshold'));
+                p.upper_limit_usd = parseFloat(formData.get('upper_limit_usd')) || 0;
+                p.lower_limit_usd = parseFloat(formData.get('lower_limit_usd')) || 0;
+                p.symbol_filter = formData.get('symbol_filter') ? formData.get('symbol_filter').split(',').map(function (s) { return s.trim(); }).filter(function (s) { return s; }) : [];
                 p.time_interval = parseInt(formData.get('time_interval')) || 600;
 
-                p.calculation_mode = 'ONLY_POSITIONS';
+                p.calculation_mode = 'NET_TOTAL_USD';
                 break;
 
             case 'fake_ip':
@@ -1451,12 +1468,13 @@ const RulesModule = {
                 break;
 
             case 'exposure_alert':
-                var e_currency = form.querySelector('[name="target_currency"]').value || 'USD';
-                var e_threshold = form.querySelector('[name="exposure_threshold"]').value || 10000000;
+                var e_upper = form.querySelector('[name="upper_limit_usd"]').value || 1000000;
+                var e_lower = form.querySelector('[name="lower_limit_usd"]').value || -1000000;
                 var e_interval = form.querySelector('[name="time_interval"]').value || 600;
                 html = I18n.t('rule_preview_exposure')
-                    .replace('%s', wrapVal(e_currency))
-                    .replace('%s', wrapVal(Utils.formatNumber(e_threshold)))
+                    .replace('%s', getSymbolsText('symbol_filter'))
+                    .replace('%s', wrapVal(Utils.formatNumber(e_upper)))
+                    .replace('%s', wrapVal(Utils.formatNumber(Math.abs(e_lower))))
                     .replace('%s', wrapVal(e_interval));
                 break;
 
